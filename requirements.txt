@@ -1,0 +1,361 @@
+We are rebuilding this project completely from scratch.
+
+The previous project/implementation was called SwaggerGuard. Do NOT preserve the old SwaggerGuard implementation, package identity, architecture, UI, or branding. This is a clean rebuild with a new product identity:
+
+PRODUCT NAME:
+UnveiledLens
+
+TAGLINE:
+Discover Beyond the Known.
+
+PRODUCT POSITIONING:
+UnveiledLens is an ownership-verified, SerpApi-powered external exposure auditor.
+
+Its purpose is to discover publicly indexed API/storage resources and other relevant exposure signals associated with a verified domain, safely determine whether discovered resources appear accessible without authentication, classify the exposure, and provide privacy-conscious security findings.
+
+CORE PRODUCT LOOP:
+Discover -> Verify -> Classify -> Safely Validate -> Interpret -> Inform
+
+IMPORTANT POSITIONING:
+The product starts from the perspective of:
+
+“What has the public web already revealed about this organization?”
+
+This makes search-engine intelligence a core discovery mechanism rather than a decorative feature.
+
+Do NOT claim that UnveiledLens discovers every exposed API, every vulnerability, or every security issue.
+
+Use accurate language such as:
+
+* “Identifies publicly discoverable exposure signals through search-engine intelligence.”
+* “Discovers what search engines reveal about your external surface.”
+* “Turns publicly discoverable exposure signals into actionable security findings.”
+
+==================================================
+
+1. NON-NEGOTIABLE STACK
+   ==================================================
+
+FRONTEND:
+
+* React
+* Vite
+* JavaScript + JSX
+* Tailwind CSS
+* React Router
+* No TypeScript
+* No Next.js
+* No unnecessary UI frameworks
+
+BACKEND:
+
+* Java 17+
+* Spring Boot
+* Spring Web
+* Spring Security
+* Spring Data JPA
+* Hibernate
+* Jakarta Validation
+* Maven Wrapper
+* JWT authentication
+* BCrypt or Argon2 password hashing
+
+DATABASE:
+
+* MySQL 8.x
+* Spring Data JPA + Hibernate
+* Flyway migrations
+* No PostgreSQL
+* No Prisma
+
+SEARCH:
+
+* SerpApi
+* Isolate all SerpApi interaction behind SerpApiService
+* API key must come from environment variables
+* Never hard-code API keys
+
+AI:
+
+* Ollama running locally
+* One local LLM
+* Model configurable through environment variables
+* Isolate interaction behind OllamaService
+* AI is ONLY for interpretation, explanation, recommendations, and report prose
+* AI must NOT control scanner scope, SSRF safety, authentication bypass, credential testing, exploitation, target selection, redaction, or security decisions
+* Scanner must remain fully functional if Ollama is unavailable
+
+EMAIL:
+
+* EmailService abstraction
+* Real Gmail test identity:
+  larvianankani11@gmail.com
+* Keep this configured for real OTP testing.
+* Do NOT show it anywhere as demo credentials.
+* Do NOT prefill it in the frontend.
+* The user must manually enter it.
+* Real OTP must be generated and delivered.
+* No hard-coded OTP.
+* No fake OTP success.
+* No automatic verification.
+
+Gmail SMTP should be configurable through environment variables.
+
+SMS:
+
+* SmsService abstraction
+* Configurable provider through environment variables
+* User will provide/use their own real phone number/provider credentials
+* Do not invent provider credentials
+* Do not create fake SMS delivery
+* Do not hard-code OTP
+* Do not auto-verify
+
+DEVELOPMENT:
+
+* VS Code
+* Git/GitHub
+* Postman or Bruno
+* JUnit
+* Mockito
+* MySQL local
+* Ollama local
+
+==================================================
+2. VERY IMPORTANT SERVER RULE
+=============================
+
+DO NOT start, restart, stop, or keep alive any development server.
+
+Do NOT run:
+
+* npm run dev
+* npm start
+* mvn spring-boot:run
+* mvnw.cmd spring-boot:run
+
+The developer will run servers manually from VS Code.
+
+You MAY run short-lived build/compile/test commands when necessary for validation, but never launch long-running development processes.
+
+==================================================
+3. FOLDER STRUCTURE
+===================
+
+Create a clean project with this structure.
+
+FRONTEND:
+
+frontend/
+├── public/
+├── src/
+│   ├── assets/
+│   ├── components/
+│   ├── layouts/
+│   ├── pages/
+│   │   ├── Landing/
+│   │   ├── Auth/
+│   │   ├── SearchResults/
+│   │   └── Settings/
+│   ├── hooks/
+│   ├── services/
+│   ├── api/
+│   ├── utils/
+│   ├── auth/
+│   ├── scan/
+│   ├── reports/
+│   ├── admin/
+│   ├── App.jsx
+│   └── main.jsx
+├── .env.example
+├── package.json
+├── vite.config.js
+└── README.md
+
+BACKEND:
+
+backend/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/unveiledlens/unveiledlens/
+│   │   │       ├── config/
+│   │   │       ├── security/
+│   │   │       ├── auth/
+│   │   │       ├── user/
+│   │   │       ├── domain/
+│   │   │       ├── verification/
+│   │   │       ├── discovery/
+│   │   │       ├── scanner/
+│   │   │       ├── finding/
+│   │   │       ├── report/
+│   │   │       ├── admin/
+│   │   │       ├── ai/
+│   │   │       ├── audit/
+│   │   │       └── common/
+│   │   └── resources/
+│   │       ├── db/
+│   │       │   └── migration/
+│   │       ├── application.yml
+│   │       └── ...
+│   └── test/
+│       └── java/
+├── pom.xml
+├── mvnw
+├── mvnw.cmd
+└── README.md
+
+Keep modules small and single-responsibility.
+Controllers should orchestrate.
+Services should contain business logic.
+Repositories should handle persistence.
+Configuration should remain separate.
+External integrations must be isolated behind service abstractions.
+
+==================================================
+4. LANDING PAGE
+===============
+
+Create a minimal, premium landing page.
+Do NOT create dashboard nav, profile nav, fake stats, fake findings.
+
+Primary actions: Login, Register
+Visual direction: Near-black/charcoal background, deep burnt orange/dark amber accents, soft orange glow, white/light-gray typography, dark glassy surfaces, premium cybersecurity-product aesthetic. No bright neon orange.
+
+MAIN HEADING: “UnveiledLens” (white + dark burnt-orange infinite animated gradient. Slow, liquid, watery, organic, subtle, premium. No glitch/shaking).
+
+==================================================
+5. LANDING PAGE EXPLANATION SECTION
+===================================
+Visual/textual explanation: Public search -> Discovery -> API resources -> Storage resources -> Safe validation -> Exposure findings -> Redacted evidence -> Security interpretation.
+Glowing nodes, flowing lines, redacted evidence blocks, subtle motion. Factual copy.
+
+==================================================
+6. REGISTRATION
+===============
+USER: Working email + Create password + Domain. Flow: -> validation -> consistency check -> default Email OTP -> OTP screen -> verify OTP -> success flash -> Login.
+DNS FALLBACK: If email OTP fails -> display DNS TXT instructions -> user adds TXT -> verify DNS -> success -> Login.
+
+EMAIL/DOMAIN CONSISTENCY: Normalize domain (e.g., example.com). Ensure email domain corresponds.
+TEST EXCEPTION: larvianankani11@gmail.com must be allowed through consistency gate (configurable via unveiledlens.verification.test-email). Still requires real OTP and domain ownership verification.
+
+ADMIN: Phone number + Create password + Domain. Flow: -> validation -> real phone OTP -> verify OTP -> ROLE_ADMIN -> success flash -> Login.
+ADMIN must use real phone OTP (no email OTP, no DNS).
+USER and ADMIN verification flows must remain independent.
+
+==================================================
+7. LOGIN
+========
+USER: Email + Password
+ADMIN: Phone + Password
+After login -> direct redirect to Search Results.
+
+==================================================
+8. AUTHENTICATED NAVIGATION
+===========================
+UnveiledLens branding, Settings icon, actual Search Results experience (clean functional shell, no fake findings).
+
+==================================================
+9. DOMAIN OWNERSHIP
+===================
+First-class security boundary. Verify before active scanning. Normalize domains.
+
+==================================================
+10. SEARCH / DISCOVERY ARCHITECTURE
+===================================
+SerpApiService (handles communication, key from env).
+DiscoveryService (coordinates, normalizes, deduplicates, sends to classification).
+AssetClassificationService (classifies: API_ENDPOINT, STORAGE_RESOURCE, DOCUMENTATION, OTHER_RELEVANT_RESOURCE).
+
+==================================================
+11. SAFE HTTP SCANNER
+=====================
+SafeHttpScanner. Safe, non-destructive validation (GET/HEAD). SSRF protections (no localhost, private IPs, cloud metadata, etc.).
+
+==================================================
+12. FINDING MODEL
+=================
+FindingService. Deterministic classification based on scanner/discovery evidence.
+
+==================================================
+13. REDACTION
+=============
+RedactionService. No passwords, OTPs, JWTs, raw response bodies stored/exposed.
+
+==================================================
+14. OLLAMA AI ANALYST
+=====================
+OllamaService (optional). Explanations, remediation. Minimal structured evidence.
+
+==================================================
+15. REPORTING
+=============
+ReportService. Discovered assets, findings, redacted evidence, AI explanation.
+
+==================================================
+16. ADMIN
+=========
+Admin area protected by Spring Security (backend-enforced ROLE_ADMIN).
+
+==================================================
+17. AUDIT LOGGING
+=================
+AuditService. Logs events (REGISTRATION, LOGIN, OTP_REQUESTED, DNS_VERIFIED, DOMAIN_CREATED, etc.). No sensitive data.
+
+==================================================
+18. DATABASE MODEL
+==================
+users, domains, domain_verifications, otp_verifications, audit_logs.
+Future: scans, assets, findings, evidence, reports.
+Use Flyway migrations, timestamps, transactions.
+
+==================================================
+19. SECURITY ARCHITECTURE
+=========================
+Spring Security, BCrypt/Argon2, JWT. Backend-enforced roles. Env vars for secrets.
+
+==================================================
+20. CACHING ARCHITECTURE
+========================
+Design cleanly. NO Redis.
+
+==================================================
+21. ERROR HANDLING
+==================
+Consistent backend error responses.
+
+==================================================
+22. FRONTEND ARCHITECTURE
+=========================
+Modular React. Services/API for backend comms.
+
+==================================================
+23. AUTH UI
+===========
+Clear paths for USER (Email/DNS) and ADMIN (Phone OTP).
+
+==================================================
+28. IMPLEMENTATION ORDER
+========================
+1. Project structure
+2. Backend Spring Boot foundation
+3. Database + Flyway
+4. Security/authentication foundation
+5. USER registration + email OTP
+6. ADMIN registration + SMS OTP
+7. Domain ownership verification + DNS fallback
+8. Login
+9. Landing page
+10. Authenticated Search Results shell
+11. SerpApi integration
+12. Discovery
+13. Asset classification
+14. Safe HTTP validation
+15. Findings
+16. Redaction
+17. Ollama interpretation
+18. Reports
+19. Admin/audit functionality
+20. Tests
+21. Warning cleanup
+22. Documentation
