@@ -206,7 +206,7 @@ export default function AdminVerify() {
                   setEmail(event.target.value)
                 }
                 className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white focus:outline-none focus:ring-1 focus:ring-accent-amber"
-                placeholder="admin@example.com"
+                placeholder="admin@yourdomain.com"
               />
 
             </div>

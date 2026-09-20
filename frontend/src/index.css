@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  --color-charcoal: #121212;
-  --color-charcoal-light: #1e1e1e;
-  --color-charcoal-lighter: #2a2a2a;
+  --color-charcoal: #0a0a0a;
+  --color-charcoal-light: #151515;
+  --color-charcoal-lighter: #202020;
   
   --color-accent-amber: #d97706;
   --color-accent-burnt: #b45309;
   --color-accent-dark: #92400e;
   
-  --color-glass-dark: rgba(18, 18, 18, 0.7);
-  --color-glass-light: rgba(255, 255, 255, 0.05);
-  --color-glass-border: rgba(255, 255, 255, 0.1);
+  --color-glass-dark: rgba(10, 10, 10, 0.7);
+  --color-glass-light: rgba(255, 255, 255, 0.03);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
 
   --animate-gradient: gradient 6s ease infinite;
 
@@ -22,13 +22,19 @@
   }
 }
 
-@layer base {
-  @keyframes movingBackground {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
+@keyframes movingBackground {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
+@keyframes wateryFloat {
+  0% { transform: translateY(-2px) scale(1); filter: blur(0px); }
+  50% { transform: translateY(-4px) scale(1.01); filter: blur(0.5px); }
+  100% { transform: translateY(-2px) scale(1); filter: blur(0px); }
+}
+
+@layer base {
   input:not([type="checkbox"]):not([type="radio"]) {
     transition: all 0.3s ease;
   }
@@ -39,7 +45,7 @@
 
   body {
     @apply text-gray-200 antialiased min-h-screen selection:bg-accent-burnt selection:text-white;
-    background: linear-gradient(135deg, #000000, #121212, #2a1100, #0a0400);
+    background: linear-gradient(135deg, #000000, #0a0a0a, #1a0800, #050200);
     background-size: 400% 400%;
     animation: movingBackground 25s ease infinite;
   }
@@ -72,7 +78,6 @@
     box-shadow: 0 0 30px rgba(180, 83, 9, 0.3);
   }
 
-  /* Watery floating effect for "Discover Beyond" */
   .watery-hover {
     display: inline-block;
     transition: all 0.4s ease;
@@ -83,25 +88,23 @@
     text-shadow: 0 0 8px rgba(180, 83, 9, 0.4), 0 -2px 12px rgba(180, 83, 9, 0.2);
     animation: wateryFloat 3s ease-in-out infinite;
   }
+}
 
-  @keyframes wateryFloat {
-    0% { transform: translateY(-2px) scale(1); filter: blur(0px); }
-    50% { transform: translateY(-4px) scale(1.01); filter: blur(0.5px); }
-    100% { transform: translateY(-2px) scale(1); filter: blur(0px); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: reduce) {
+  @layer base {
     input:not([type="checkbox"]):not([type="radio"]) {
-    transition: all 0.3s ease;
-  }
-  input:not([type="checkbox"]):not([type="radio"]):focus {
-    box-shadow: 0 0 10px rgba(180, 83, 9, 0.2);
-    transform: translateY(-1px);
-  }
-
-  body {
+      transition: all 0.3s ease;
+    }
+    input:not([type="checkbox"]):not([type="radio"]):focus {
+      box-shadow: 0 0 10px rgba(180, 83, 9, 0.2);
+      transform: translateY(-1px);
+    }
+    body {
       animation: none !important;
     }
+  }
+
+  @layer utilities {
     .watery-hover:hover {
       animation: none !important;
       transform: none !important;

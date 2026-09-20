@@ -9,11 +9,25 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class DiscoveryController {
     private final DiscoveryService discoveryService;
+    private final com.unveiledlens.user.UserRepository userRepository;
 
     @PostMapping("/scan")
-    public ResponseEntity<?> startScan(@RequestBody Map<String, String> request) {
-        String domain = request.get("domain");
-        return ResponseEntity.ok(discoveryService.runDiscovery(domain));
+    public ResponseEntity<?> startScan(org.springframework.security.core.Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+        
+        String identifier = authentication.getName();
+        com.unveiledlens.user.User user = userRepository.findByEmail(identifier).orElse(null);
+        if (user == null) {
+            user = userRepository.findByPhone(identifier).orElse(null);
+        }
+        
+        if (user == null || user.getDomain() == null || user.getDomain().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No valid domain associated with this user"));
+        }
+
+        return ResponseEntity.ok(discoveryService.runDiscovery(user.getDomain()));
     }
 }
 

@@ -31,12 +31,8 @@ public class JwtAuthenticationFilter
         String path =
                 request.getServletPath();
 
-        return path.startsWith(
-                    "/api/auth/"
-                )
-                || path.startsWith(
-                    "/api/admin-access/"
-                );
+        return path.startsWith("/api/auth/")
+                || path.startsWith("/api/admin-access/");
     }
 
     @Override
@@ -47,15 +43,11 @@ public class JwtAuthenticationFilter
     )
             throws ServletException, IOException {
 
-        final String authHeader =
-                request.getHeader(
-                        "Authorization"
-                );
+        String authorization =
+                request.getHeader("Authorization");
 
-        if (authHeader == null
-                || !authHeader.startsWith(
-                        "Bearer "
-                )) {
+        if (authorization == null
+                || !authorization.startsWith("Bearer ")) {
 
             filterChain.doFilter(
                     request,
@@ -65,15 +57,13 @@ public class JwtAuthenticationFilter
             return;
         }
 
+        String jwt =
+                authorization.substring(7);
+
         try {
 
-            String jwt =
-                    authHeader.substring(7);
-
             String username =
-                    jwtService.extractUsername(
-                            jwt
-                    );
+                    jwtService.extractUsername(jwt);
 
             if (username != null
                     && SecurityContextHolder
@@ -82,9 +72,7 @@ public class JwtAuthenticationFilter
 
                 UserDetails userDetails =
                         userDetailsService
-                                .loadUserByUsername(
-                                        username
-                                );
+                                .loadUserByUsername(username);
 
                 if (jwtService.isTokenValid(
                         jwt,
@@ -92,31 +80,30 @@ public class JwtAuthenticationFilter
                 )) {
 
                     UsernamePasswordAuthenticationToken
-                            authToken =
+                            authentication =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
                                     null,
-                                    userDetails
-                                            .getAuthorities()
+                                    userDetails.getAuthorities()
                             );
 
-                    authToken.setDetails(
+                    authentication.setDetails(
                             new WebAuthenticationDetailsSource()
-                                    .buildDetails(
-                                            request
-                                    )
+                                    .buildDetails(request)
                     );
 
                     SecurityContextHolder
                             .getContext()
                             .setAuthentication(
-                                    authToken
+                                    authentication
                             );
                 }
             }
 
         } catch (Exception ignored) {
-            // Invalid JWT remains unauthenticated.
+
+            SecurityContextHolder
+                    .clearContext();
         }
 
         filterChain.doFilter(

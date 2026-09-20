@@ -133,7 +133,7 @@ export default function AdminRequest() {
                 setEmail(event.target.value)
               }
               className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-amber focus:border-accent-amber sm:text-sm"
-              placeholder="admin@example.com"
+              placeholder="admin@yourdomain.com"
             />
 
           </div>

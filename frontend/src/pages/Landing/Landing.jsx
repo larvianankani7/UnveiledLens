@@ -115,11 +115,11 @@ export default function Landing() {
                   <span>Status</span>
                 </div>
                 <div className="flex justify-between items-center text-gray-300">
-                  <span className="flex items-center"><Database className="h-4 w-4 mr-2 text-gray-500" /> example.com</span>
+                  <span className="flex items-center"><Database className="h-4 w-4 mr-2 text-gray-500" /> yourdomain.com</span>
                   <span className="text-accent-amber bg-accent-burnt/10 px-2 py-1 rounded text-xs">VERIFIED</span>
                 </div>
                 <div className="flex justify-between items-center text-gray-300">
-                  <span className="flex items-center"><Database className="h-4 w-4 mr-2 text-gray-500" /> api.example.com</span>
+                  <span className="flex items-center"><Database className="h-4 w-4 mr-2 text-gray-500" /> api.yourdomain.com</span>
                   <span className="text-gray-400 bg-gray-800 px-2 py-1 rounded text-xs">PENDING TXT</span>
                 </div>
               </div>

@@ -44,10 +44,16 @@ public class AuthService {
             );
         }
 
+        String domain = normalizeDomain(request.getDomain());
+        if (domain == null || domain.isEmpty()) {
+            throw new IllegalArgumentException("A valid domain is required.");
+        }
+
         User user =
                 new User();
 
         user.setEmail(email);
+        user.setDomain(domain);
 
         user.setPassword(
                 passwordEncoder.encode(
@@ -174,27 +180,44 @@ public class AuthService {
             );
         }
 
-        UserDetails user =
-                userDetailsService
-                        .loadUserByUsername(
-                                identifier
-                        );
-
-        String jwtToken =
-                jwtService.generateToken(
-                        user
-                );
+        try {
+            otpService.generateAndSendEmailOtp(account.getEmail());
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to send login OTP.");
+        }
 
         auditService.log(
-                "LOGIN",
-                "User logged in",
+                "LOGIN_OTP_REQUESTED",
+                "User login OTP requested",
                 account.getId()
         );
 
         return new AuthResponse(
-                jwtToken,
-                "Login successful"
+                null,
+                "Verification code sent to your email.",
+                true
         );
+    }
+
+    public AuthResponse verifyLoginOtp(VerifyOtpRequest request) {
+        String identifier = normalizeIdentifier(request.getIdentifier());
+        
+        boolean valid = otpService.verifyOtp(identifier, request.getOtp());
+        if (!valid) {
+            throw new IllegalArgumentException("Invalid or expired OTP.");
+        }
+
+        User user = findUserByIdentifier(identifier);
+        if (user == null || user.getRole() != Role.ROLE_USER) {
+            throw new IllegalArgumentException("Invalid user.");
+        }
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(identifier);
+        String jwtToken = jwtService.generateToken(userDetails);
+
+        auditService.log("LOGIN", "User logged in", user.getId());
+
+        return new AuthResponse(jwtToken, "Login successful", false);
     }
 
     private User findUserByIdentifier(
@@ -238,5 +261,25 @@ public class AuthService {
         }
 
         return normalized;
+    }
+
+    private String normalizeDomain(String domain) {
+        if (domain == null || domain.trim().isEmpty()) {
+            return null;
+        }
+        String d = domain.trim().toLowerCase();
+        if (d.startsWith("http://")) d = d.substring(7);
+        if (d.startsWith("https://")) d = d.substring(8);
+        if (d.endsWith("/")) d = d.substring(0, d.length() - 1);
+        
+        // Remove path/query if present
+        if (d.contains("/")) {
+            d = d.substring(0, d.indexOf("/"));
+        }
+        
+        if (d.isEmpty() || d.equals("localhost") || d.startsWith("127.") || d.contains(":") || !d.contains(".")) {
+            throw new IllegalArgumentException("Invalid domain provided.");
+        }
+        return d;
     }
 }

@@ -2,6 +2,7 @@ package com.unveiledlens.config;
 
 import com.unveiledlens.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationProvider authenticationProvider;
 
     @Bean
@@ -31,58 +32,57 @@ public class SecurityConfig {
     ) throws Exception {
 
         http
-            .cors(cors ->
-                    cors.configurationSource(
-                            corsConfigurationSource()
-                    )
-            )
+                .cors(cors ->
+                        cors.configurationSource(
+                                corsConfigurationSource()
+                        )
+                )
 
-            .csrf(csrf ->
-                    csrf.disable()
-            )
+                .csrf(csrf ->
+                        csrf.disable()
+                )
 
-            .authorizeHttpRequests(auth ->
-                    auth
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
+                )
 
-                    .requestMatchers(
-                            HttpMethod.OPTIONS,
-                            "/**"
-                    )
-                    .permitAll()
+                .authenticationProvider(
+                        authenticationProvider
+                )
 
-                    .requestMatchers(
-                            "/api/auth/**"
-                    )
-                    .permitAll()
+                .authorizeHttpRequests(auth ->
+                        auth
+                                .requestMatchers(
+                                        HttpMethod.OPTIONS,
+                                        "/**"
+                                )
+                                .permitAll()
 
-                    .requestMatchers(
-                            "/api/admin-access/**"
-                    )
-                    .permitAll()
+                                .requestMatchers(
+                                        "/api/auth/**"
+                                )
+                                .permitAll()
 
-                    .requestMatchers(
-                            "/api/admin/**"
-                    )
-                    .hasRole("ADMIN")
+                                .requestMatchers(
+                                        "/api/admin-access/**"
+                                )
+                                .permitAll()
 
-                    .anyRequest()
-                    .authenticated()
-            )
+                                .requestMatchers(
+                                        "/api/admin/**"
+                                )
+                                .hasRole("ADMIN")
 
-            .sessionManagement(session ->
-                    session.sessionCreationPolicy(
-                            SessionCreationPolicy.STATELESS
-                    )
-            )
+                                .anyRequest()
+                                .authenticated()
+                )
 
-            .authenticationProvider(
-                    authenticationProvider
-            )
-
-            .addFilterBefore(
-                    jwtAuthFilter,
-                    UsernamePasswordAuthenticationFilter.class
-            );
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                );
 
         return http.build();
     }
@@ -93,9 +93,10 @@ public class SecurityConfig {
         CorsConfiguration configuration =
                 new CorsConfiguration();
 
-        configuration.setAllowedOrigins(
+        configuration.setAllowedOriginPatterns(
                 List.of(
-                        "http://localhost:3000"
+                        "http://localhost:*",
+                        "http://127.0.0.1:*"
                 )
         );
 
@@ -114,8 +115,10 @@ public class SecurityConfig {
                 List.of("*")
         );
 
-        configuration.setAllowCredentials(
-                true
+        configuration.setAllowCredentials(true);
+
+        configuration.setExposedHeaders(
+                List.of("Authorization")
         );
 
         UrlBasedCorsConfigurationSource source =
@@ -127,5 +130,22 @@ public class SecurityConfig {
         );
 
         return source;
+    }
+
+    @Bean
+    public FilterRegistrationBean<JwtAuthenticationFilter>
+    jwtAuthenticationFilterRegistration(
+            JwtAuthenticationFilter filter
+    ) {
+
+        FilterRegistrationBean<JwtAuthenticationFilter>
+                registration =
+                new FilterRegistrationBean<>(
+                        filter
+                );
+
+        registration.setEnabled(false);
+
+        return registration;
     }
 }

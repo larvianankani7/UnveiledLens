@@ -40,4 +40,13 @@ public class AuthController {
                 authService.login(request)
         );
     }
+
+    @PostMapping("/login/verify-otp")
+    public ResponseEntity<?> verifyLoginOtp(
+            @RequestBody VerifyOtpRequest request
+    ) {
+        return ResponseEntity.ok(
+                authService.verifyLoginOtp(request)
+        );
+    }
 }

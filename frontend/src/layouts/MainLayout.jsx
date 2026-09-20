@@ -8,8 +8,8 @@ export default function MainLayout() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Real auth check using localStorage
-    const token = localStorage.getItem('token');
+    // Real auth check using sessionStorage or localStorage
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
     setIsAuthenticated(!!token);
     
     // Auth guards
@@ -19,6 +19,8 @@ export default function MainLayout() {
   }, [location.pathname, navigate]);
 
   const handleLogout = () => {
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('role');
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     setIsAuthenticated(false);

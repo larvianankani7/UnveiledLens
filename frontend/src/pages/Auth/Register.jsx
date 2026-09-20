@@ -5,7 +5,8 @@ import {
   Lock,
   Globe,
   CheckCircle2,
-  Loader2
+  Loader2,
+  ArrowLeft
 } from 'lucide-react';
 
 const API_BASE_URL =
@@ -151,7 +152,15 @@ export default function Register() {
   };
 
   return (
-    <div>
+    <div className="relative">
+      <Link 
+        to="/" 
+        className="absolute -top-12 left-0 p-2 text-gray-400 hover:text-white transition-colors"
+        title="Back to Home"
+        aria-label="Back to Home"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </Link>
 
       <h2 className="text-2xl font-bold text-white mb-6 text-center">
         Create an Account
@@ -186,7 +195,7 @@ export default function Register() {
                   )
                 }
                 className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-amber"
-                placeholder="security@example.com"
+                placeholder="security@yourdomain.com"
               />
 
             </div>
@@ -216,7 +225,7 @@ export default function Register() {
                   )
                 }
                 className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-amber"
-                placeholder="example.com"
+                placeholder="yourdomain.com"
               />
 
             </div>

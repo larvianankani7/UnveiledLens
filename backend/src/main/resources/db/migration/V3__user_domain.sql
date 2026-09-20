@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN domain VARCHAR(255);

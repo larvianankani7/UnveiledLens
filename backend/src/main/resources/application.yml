@@ -38,10 +38,10 @@ ollama:
 
 unveiledlens:
   verification:
-    test-email: larvianankani11@gmail.com
+    test-email: larvia75@gmail.com
 
 admin:
   approval-email: ${ADMIN_APPROVAL_EMAIL}
   request-expiration: 86400000
   authorization-expiration: 2592000000
-  
+

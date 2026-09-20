@@ -30,7 +30,7 @@ export default function Settings() {
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Role</label>
               <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-accent-burnt/20 text-accent-amber border border-accent-burnt/30 shadow-sm">
-                {localStorage.getItem('role') === 'ROLE_ADMIN' ? 'ADMIN' : 'USER'}
+                {(sessionStorage.getItem('role') || localStorage.getItem('role')) === 'ROLE_ADMIN' ? 'ADMIN' : 'USER'}
               </div>
             </div>
           </div>
