@@ -1,4 +1,3 @@
-
 package com.unveiledlens.discovery;
 
 import com.unveiledlens.ai.OllamaService;
@@ -10,6 +9,7 @@ import com.unveiledlens.scanner.SafeHttpScanner;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -21,315 +21,328 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class DiscoveryService {
 
-    private final SerpApiService serpApiService;
-    private final DomainRelevanceFilter relevanceFilter;
-    private final ExposureClassifier classifier;
-    private final SafeHttpScanner safeHttpScanner;
-    private final EvidenceEngine evidenceEngine;
-    private final OllamaService ollamaService;
+private final SerpApiService serpApiService;
+private final DomainRelevanceFilter relevanceFilter;
+private final AssetRelevanceFilter assetRelevanceFilter;
+private final ExposureClassifier classifier;
+private final SafeHttpScanner safeHttpScanner;
+private final EvidenceEngine evidenceEngine;
+private final OllamaService ollamaService;
 
-    public ExposureReport runDiscovery(
-            String domain
-    ) {
+public ExposureReport runDiscovery(
+        String domain
+) {
 
-        String normalizedDomain =
-                normalizeDomain(domain);
+    String normalizedDomain =
+            normalizeDomain(domain);
 
-        List<String> queries =
-                buildQueries(normalizedDomain);
+    List<String> queries =
+            buildQueries(normalizedDomain);
 
-        Map<String, SerpApiResult> uniqueResults =
-                new LinkedHashMap<>();
+    Map<String, SerpApiResult> uniqueResults =
+            new LinkedHashMap<>();
 
-        for (String query : queries) {
+    for (String query : queries) {
 
-            List<SerpApiResult> results =
-                    serpApiService.search(query);
+        List<SerpApiResult> results =
+                serpApiService.search(query);
 
-            for (SerpApiResult result : results) {
+        for (SerpApiResult result : results) {
 
-                String normalizedUrl =
-                        normalizeUrl(result.getUrl());
+            String normalizedUrl =
+                    normalizeUrl(result.getUrl());
 
-                if (normalizedUrl != null) {
+            if (normalizedUrl != null) {
 
-                    uniqueResults.putIfAbsent(
-                            normalizedUrl,
-                            SerpApiResult.builder()
-                                    .url(normalizedUrl)
-                                    .title(result.getTitle())
-                                    .snippet(result.getSnippet())
-                                    .build()
-                    );
-                }
+                uniqueResults.putIfAbsent(
+                        normalizedUrl,
+                        SerpApiResult.builder()
+                                .url(normalizedUrl)
+                                .title(result.getTitle())
+                                .snippet(result.getSnippet())
+                                .build()
+                );
             }
         }
-
-        List<ExposureFinding> findings =
-                new ArrayList<>();
-
-        int relevantAssets = 0;
-
-        int reachableFindings = 0;
-        int apiSurfaces = 0;
-        int cloudStorageReferences = 0;
-        int configurationSignals = 0;
-        int graphqlSurfaces = 0;
-
-        for (SerpApiResult result :
-                uniqueResults.values()) {
-
-            String url =
-                    result.getUrl();
-
-            if (!relevanceFilter.isRelevant(
-                    url,
-                    normalizedDomain
-            )) {
-
-                continue;
-            }
-
-            relevantAssets++;
-
-            String category =
-                    classifier.classify(
-                            url,
-                            result.getTitle(),
-                            result.getSnippet()
-                    );
-
-            Map<String, Object> validation =
-                    safeHttpScanner.safeValidate(url);
-
-            boolean reachable =
-                    Boolean.TRUE.equals(
-                            validation.get("reachable")
-                    );
-
-            boolean redirected =
-                    Boolean.TRUE.equals(
-                            validation.get("redirected")
-                    );
-
-            Integer status =
-                    (Integer)
-                            validation.get("status");
-
-            String contentType =
-                    (String)
-                            validation.get(
-                                    "contentType"
-                            );
-
-            List<String> evidence =
-                    evidenceEngine.buildEvidence(
-                            category,
-                            url,
-                            result.getTitle(),
-                            result.getSnippet(),
-                            validation
-                    );
-
-            String evidenceText =
-                    String.join(
-                            "; ",
-                            evidence
-                    );
-
-            String reason =
-                    ollamaService.interpret(
-                            category,
-                            url,
-                            reachable,
-                            evidenceText
-                    );
-
-            findings.add(
-                    ExposureFinding.builder()
-                            .category(category)
-                            .severity(
-                                    classifier.getSeverity(
-                                            category
-                                    )
-                            )
-                            .url(url)
-                            .reason(reason)
-                            .discovered(true)
-                            .targetOwned(true)
-                            .reachable(reachable)
-                            .redirected(redirected)
-                            .status(status)
-                            .contentType(contentType)
-                            .evidence(evidence)
-                            .build()
-            );
-
-            if (reachable) {
-                reachableFindings++;
-            }
-
-            if (category.startsWith("API_")) {
-                apiSurfaces++;
-            }
-
-            if (category.equals(
-                    "GRAPHQL"
-            )) {
-                graphqlSurfaces++;
-            }
-
-            if (category.equals(
-                    "CLOUD_STORAGE"
-            )) {
-                cloudStorageReferences++;
-            }
-
-            if (category.equals(
-                    "CONFIGURATION"
-            )) {
-                configurationSignals++;
-            }
-        }
-
-        ScanSummary summary =
-                ScanSummary.builder()
-                        .totalDiscovered(
-                                uniqueResults.size()
-                        )
-                        .relevantAssets(
-                                relevantAssets
-                        )
-                        .totalFindings(
-                                findings.size()
-                        )
-                        .reachableFindings(
-                                reachableFindings
-                        )
-                        .apiSurfaces(
-                                apiSurfaces
-                        )
-                        .cloudStorageReferences(
-                                cloudStorageReferences
-                        )
-                        .configurationSignals(
-                                configurationSignals
-                        )
-                        .graphqlSurfaces(
-                                graphqlSurfaces
-                        )
-                        .build();
-
-        return ExposureReport.builder()
-                .domain(normalizedDomain)
-                .scannedAt(
-                        Instant.now().toString()
-                )
-                .summary(summary)
-                .findings(findings)
-                .build();
     }
 
-    private List<String> buildQueries(
-            String domain
-    ) {
+    List<ExposureFinding> findings =
+            new ArrayList<>();
 
-        return List.of(
-                "site:" + domain,
+    int relevantAssets = 0;
+    int reachableFindings = 0;
+    int apiSurfaces = 0;
+    int cloudStorageReferences = 0;
+    int configurationSignals = 0;
+    int graphqlSurfaces = 0;
 
-                "site:" + domain
-                        + " (swagger OR \"swagger-ui\" OR openapi OR \"api docs\")",
+    for (SerpApiResult result :
+            uniqueResults.values()) {
 
-                "site:" + domain
-                        + " (\"/api/\" OR \"/v1/\" OR \"/v2/\")",
+        String url =
+                result.getUrl();
 
-                "site:" + domain
-                        + " (graphql OR \"/graphql\")",
+        /*
+         * Layer 1:
+         * Make sure the URL belongs to the
+         * verified target domain.
+         */
+        if (!relevanceFilter.isRelevant(
+                url,
+                normalizedDomain
+        )) {
 
-                "site:" + domain
-                        + " (filetype:json OR filetype:yaml OR filetype:yml)",
-
-                "site:" + domain
-                        + " (\"s3.amazonaws.com\" OR \"amazonaws.com\" OR \"storage.googleapis.com\" OR \"blob.core.windows.net\")"
-        );
-    }
-
-    private String normalizeDomain(
-            String domain
-    ) {
-
-        if (domain == null) {
-            return "";
+            continue;
         }
 
-        String normalized =
-                domain.trim()
-                        .toLowerCase(Locale.ROOT);
+        /*
+         * Layer 2:
+         * Make sure the target-owned URL
+         * represents a technically interesting
+         * asset rather than a normal webpage,
+         * redirect helper, base64 endpoint, etc.
+         */
+        if (!assetRelevanceFilter.isRelevant(
+                url,
+                result.getTitle(),
+                result.getSnippet()
+        )) {
 
-        normalized =
-                normalized.replaceFirst(
-                        "^https?://",
-                        ""
+            continue;
+        }
+
+        relevantAssets++;
+
+        String category =
+                classifier.classify(
+                        url,
+                        result.getTitle(),
+                        result.getSnippet()
                 );
 
-        normalized =
-                normalized.split("/")[0];
+        Map<String, Object> validation =
+                safeHttpScanner.safeValidate(url);
 
-        normalized =
-                normalized.split(":")[0];
+        boolean reachable =
+                Boolean.TRUE.equals(
+                        validation.get("reachable")
+                );
 
-        if (normalized.startsWith("www.")) {
+        boolean redirected =
+                Boolean.TRUE.equals(
+                        validation.get("redirected")
+                );
 
-            normalized =
-                    normalized.substring(4);
+        Integer status =
+                (Integer)
+                        validation.get("status");
+
+        String contentType =
+                (String)
+                        validation.get("contentType");
+
+        List<String> evidence =
+                evidenceEngine.buildEvidence(
+                        category,
+                        url,
+                        result.getTitle(),
+                        result.getSnippet(),
+                        validation
+                );
+
+        String evidenceText =
+                String.join(
+                        "; ",
+                        evidence
+                );
+
+        String reason =
+                ollamaService.interpret(
+                        category,
+                        url,
+                        reachable,
+                        evidenceText
+                );
+
+        findings.add(
+                ExposureFinding.builder()
+                        .category(category)
+                        .severity(
+                                classifier.getSeverity(
+                                        category
+                                )
+                        )
+                        .url(url)
+                        .reason(reason)
+                        .discovered(true)
+                        .targetOwned(true)
+                        .reachable(reachable)
+                        .redirected(redirected)
+                        .status(status)
+                        .contentType(contentType)
+                        .evidence(evidence)
+                        .build()
+        );
+
+        if (reachable) {
+            reachableFindings++;
         }
 
-        return normalized;
+        if (category.startsWith("API_")) {
+            apiSurfaces++;
+        }
+
+        if (category.equals("GRAPHQL")) {
+            graphqlSurfaces++;
+        }
+
+        if (category.equals("CLOUD_STORAGE")) {
+            cloudStorageReferences++;
+        }
+
+        if (category.equals("CONFIGURATION")) {
+            configurationSignals++;
+        }
     }
 
-    private String normalizeUrl(
-            String url
-    ) {
+    ScanSummary summary =
+            ScanSummary.builder()
+                    .totalDiscovered(
+                            uniqueResults.size()
+                    )
+                    .relevantAssets(
+                            relevantAssets
+                    )
+                    .totalFindings(
+                            findings.size()
+                    )
+                    .reachableFindings(
+                            reachableFindings
+                    )
+                    .apiSurfaces(
+                            apiSurfaces
+                    )
+                    .cloudStorageReferences(
+                            cloudStorageReferences
+                    )
+                    .configurationSignals(
+                            configurationSignals
+                    )
+                    .graphqlSurfaces(
+                            graphqlSurfaces
+                    )
+                    .build();
 
-        if (url == null
-                || url.isBlank()) {
+    return ExposureReport.builder()
+            .domain(normalizedDomain)
+            .scannedAt(
+                    Instant.now().toString()
+            )
+            .summary(summary)
+            .findings(findings)
+            .build();
+}
+
+private List<String> buildQueries(
+        String domain
+) {
+
+    return List.of(
+            "site:" + domain
+                    + " (swagger OR \"swagger-ui\" OR openapi OR \"api docs\")",
+
+            "site:" + domain
+                    + " (\"/api/\" OR \"/v1/\" OR \"/v2/\" OR \"/v3/\")",
+
+            "site:" + domain
+                    + " (graphql OR \"/graphql\")",
+
+            "site:" + domain
+                    + " (filetype:json OR filetype:yaml OR filetype:yml OR filetype:xml)",
+
+            "site:" + domain
+                    + " (\"s3.amazonaws.com\" OR \"amazonaws.com\" OR \"storage.googleapis.com\" OR \"blob.core.windows.net\")",
+
+            "site:" + domain
+                    + " (\".env\" OR \"config\" OR \"configuration\")"
+    );
+}
+
+private String normalizeDomain(
+        String domain
+) {
+
+    if (domain == null) {
+        return "";
+    }
+
+    String normalized =
+            domain.trim()
+                    .toLowerCase(Locale.ROOT);
+
+    normalized =
+            normalized.replaceFirst(
+                    "^https?://",
+                    ""
+            );
+
+    normalized =
+            normalized.split("/")[0];
+
+    normalized =
+            normalized.split(":")[0];
+
+    if (normalized.startsWith("www.")) {
+
+        normalized =
+                normalized.substring(4);
+    }
+
+    return normalized;
+}
+
+private String normalizeUrl(
+        String url
+) {
+
+    if (url == null
+            || url.isBlank()) {
+
+        return null;
+    }
+
+    try {
+
+        URI uri =
+                new URI(
+                        url.trim()
+                );
+
+        String scheme =
+                uri.getScheme();
+
+        String host =
+                uri.getHost();
+
+        if (scheme == null
+                || host == null) {
 
             return null;
         }
 
-        try {
-
-            java.net.URI uri =
-                    new java.net.URI(
-                            url.trim()
-                    );
-
-            String scheme =
-                    uri.getScheme();
-
-            String host =
-                    uri.getHost();
-
-            if (scheme == null
-                    || host == null) {
-
-                return null;
-            }
-
-            if (!scheme.equalsIgnoreCase("http")
-                    && !scheme.equalsIgnoreCase(
-                    "https"
-            )) {
-
-                return null;
-            }
-
-            return uri.toString();
-
-        } catch (Exception e) {
+        if (!scheme.equalsIgnoreCase("http")
+                && !scheme.equalsIgnoreCase("https")) {
 
             return null;
         }
+
+        return uri.toString();
+
+    } catch (Exception e) {
+
+        return null;
     }
 }
 
+
+}
