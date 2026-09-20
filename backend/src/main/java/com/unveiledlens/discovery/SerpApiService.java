@@ -1,12 +1,15 @@
+
 package com.unveiledlens.discovery;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.unveiledlens.discovery.dto.SerpApiResult;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,45 +17,94 @@ import java.util.List;
 @Service
 public class SerpApiService {
 
-    @Value("${SERPAPI_KEY:#{null}}")
+    @Value("${serpapi.key:}")
     private String apiKey;
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public List<String> search(String query) {
-        List<String> links = new ArrayList<>();
-        if (apiKey == null || apiKey.isEmpty() || apiKey.equals("<already configured>")) {
+    public List<SerpApiResult> search(String query) {
+
+        List<SerpApiResult> results = new ArrayList<>();
+
+        if (apiKey == null
+                || apiKey.isBlank()
+                || apiKey.equals("<already configured>")) {
+
             log.warn("SerpApi key is missing or not configured correctly.");
-            return links;
+            return results;
         }
 
         try {
-            String url = UriComponentsBuilder.fromHttpUrl("https://serpapi.com/search.json")
-                    .queryParam("engine", "google")
-                    .queryParam("q", query)
-                    .queryParam("api_key", apiKey)
-                    .queryParam("num", 10)
-                    .build()
-                    .toUriString();
 
-            String response = restTemplate.getForObject(url, String.class);
-            if (response != null) {
-                JsonNode root = objectMapper.readTree(response);
-                JsonNode organicResults = root.path("organic_results");
-                if (organicResults.isArray()) {
-                    for (JsonNode node : organicResults) {
-                        String link = node.path("link").asText();
-                        if (link != null && !link.isEmpty()) {
-                            links.add(link);
-                        }
-                    }
-                }
+            String url =
+                    UriComponentsBuilder
+                            .fromHttpUrl("https://serpapi.com/search.json")
+                            .queryParam("engine", "google")
+                            .queryParam("q", query)
+                            .queryParam("api_key", apiKey)
+                            .queryParam("num", 10)
+                            .build()
+                            .toUriString();
+
+            String response =
+                    restTemplate.getForObject(
+                            url,
+                            String.class
+                    );
+
+            if (response == null || response.isBlank()) {
+                return results;
             }
+
+            JsonNode root =
+                    objectMapper.readTree(response);
+
+            JsonNode organicResults =
+                    root.path("organic_results");
+
+            if (!organicResults.isArray()) {
+                return results;
+            }
+
+            for (JsonNode node : organicResults) {
+
+                String link =
+                        node.path("link").asText("");
+
+                if (link.isBlank()) {
+                    continue;
+                }
+
+                results.add(
+                        SerpApiResult.builder()
+                                .url(link)
+                                .title(
+                                        node.path("title")
+                                                .asText("")
+                                )
+                                .snippet(
+                                        node.path("snippet")
+                                                .asText("")
+                                )
+                                .build()
+                );
+            }
+
         } catch (Exception e) {
-            log.error("Failed to query SerpApi", e);
-            throw new RuntimeException("SerpApi failure: " + e.getMessage());
+
+            log.error(
+                    "Failed to query SerpApi",
+                    e
+            );
+
+            throw new RuntimeException(
+                    "SerpApi failure: " + e.getMessage(),
+                    e
+            );
         }
-        return links;
+
+        return results;
     }
 }
+

@@ -7,6 +7,9 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OtpService {
@@ -82,6 +85,8 @@ public class OtpService {
             String target,
             String otp
     ) {
+
+        log.info("DEBUG OTP for {}: {}", target, otp);
 
         OtpVerification verification =
                 new OtpVerification();

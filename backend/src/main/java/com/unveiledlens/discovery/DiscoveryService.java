@@ -1,95 +1,335 @@
+
 package com.unveiledlens.discovery;
 
 import com.unveiledlens.ai.OllamaService;
 import com.unveiledlens.discovery.dto.ExposureFinding;
 import com.unveiledlens.discovery.dto.ExposureReport;
 import com.unveiledlens.discovery.dto.ScanSummary;
+import com.unveiledlens.discovery.dto.SerpApiResult;
 import com.unveiledlens.scanner.SafeHttpScanner;
-import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class DiscoveryService {
+
     private final SerpApiService serpApiService;
+    private final DomainRelevanceFilter relevanceFilter;
     private final ExposureClassifier classifier;
     private final SafeHttpScanner safeHttpScanner;
+    private final EvidenceEngine evidenceEngine;
     private final OllamaService ollamaService;
 
-    public ExposureReport runDiscovery(String domain) {
-        Set<String> uniqueUrls = new HashSet<>();
-        
-        List<String> queries = List.of(
-            "site:" + domain,
-            "site:" + domain + " (swagger OR \"swagger-ui\" OR openapi OR \"api docs\")",
-            "site:" + domain + " (\"/api/\" OR \"/v1/\" OR \"/v2/\")",
-            "site:" + domain + " (graphql OR \"/graphql\")",
-            "site:" + domain + " (filetype:json OR filetype:yaml OR filetype:yml)",
-            "site:" + domain + " (\"s3.amazonaws.com\" OR \"amazonaws.com\")"
-        );
+    public ExposureReport runDiscovery(
+            String domain
+    ) {
+
+        String normalizedDomain =
+                normalizeDomain(domain);
+
+        List<String> queries =
+                buildQueries(normalizedDomain);
+
+        Map<String, SerpApiResult> uniqueResults =
+                new LinkedHashMap<>();
 
         for (String query : queries) {
-            List<String> results = serpApiService.search(query);
-            uniqueUrls.addAll(results);
+
+            List<SerpApiResult> results =
+                    serpApiService.search(query);
+
+            for (SerpApiResult result : results) {
+
+                String normalizedUrl =
+                        normalizeUrl(result.getUrl());
+
+                if (normalizedUrl != null) {
+
+                    uniqueResults.putIfAbsent(
+                            normalizedUrl,
+                            SerpApiResult.builder()
+                                    .url(normalizedUrl)
+                                    .title(result.getTitle())
+                                    .snippet(result.getSnippet())
+                                    .build()
+                    );
+                }
+            }
         }
 
-        List<ExposureFinding> findings = new ArrayList<>();
+        List<ExposureFinding> findings =
+                new ArrayList<>();
+
+        int relevantAssets = 0;
+
+        int reachableFindings = 0;
         int apiSurfaces = 0;
         int cloudStorageReferences = 0;
         int configurationSignals = 0;
+        int graphqlSurfaces = 0;
 
-        for (String url : uniqueUrls) {
-            String category = classifier.classify(url);
-            String severity = classifier.getSeverity(category);
-            
-            Map<String, Object> validation = safeHttpScanner.safeValidate(url);
-            boolean reachable = (boolean) validation.getOrDefault("reachable", false);
-            Integer status = (Integer) validation.get("status");
-            String contentType = (String) validation.get("contentType");
+        for (SerpApiResult result :
+                uniqueResults.values()) {
 
-            String reason = "Potential exposure discovered.";
-            try {
-                reason = ollamaService.interpret("Category: " + category + " URL: " + url + " Reachable: " + reachable);
-            } catch (Exception e) {
-                // Fallback if Ollama fails
-                if (category.equals("API_DOCUMENTATION")) reason = "Public API documentation exposure.";
-                else if (category.equals("GRAPHQL")) reason = "Potential publicly discoverable GraphQL surface.";
-                else if (category.equals("API_ENDPOINT")) reason = "API surface discovered.";
-                else if (category.equals("CLOUD_STORAGE")) reason = "Cloud/storage reference discovered.";
-                else if (category.equals("CONFIGURATION")) reason = "Potential configuration exposure.";
+            String url =
+                    result.getUrl();
+
+            if (!relevanceFilter.isRelevant(
+                    url,
+                    normalizedDomain
+            )) {
+
+                continue;
             }
 
-            findings.add(ExposureFinding.builder()
-                .category(category)
-                .severity(severity)
-                .url(url)
-                .reason(reason)
-                .discovered(true)
-                .reachable(reachable)
-                .status(status)
-                .contentType(contentType)
-                .build());
+            relevantAssets++;
 
-            if (category.startsWith("API_")) apiSurfaces++;
-            if (category.equals("CLOUD_STORAGE")) cloudStorageReferences++;
-            if (category.equals("CONFIGURATION")) configurationSignals++;
+            String category =
+                    classifier.classify(
+                            url,
+                            result.getTitle(),
+                            result.getSnippet()
+                    );
+
+            Map<String, Object> validation =
+                    safeHttpScanner.safeValidate(url);
+
+            boolean reachable =
+                    Boolean.TRUE.equals(
+                            validation.get("reachable")
+                    );
+
+            boolean redirected =
+                    Boolean.TRUE.equals(
+                            validation.get("redirected")
+                    );
+
+            Integer status =
+                    (Integer)
+                            validation.get("status");
+
+            String contentType =
+                    (String)
+                            validation.get(
+                                    "contentType"
+                            );
+
+            List<String> evidence =
+                    evidenceEngine.buildEvidence(
+                            category,
+                            url,
+                            result.getTitle(),
+                            result.getSnippet(),
+                            validation
+                    );
+
+            String evidenceText =
+                    String.join(
+                            "; ",
+                            evidence
+                    );
+
+            String reason =
+                    ollamaService.interpret(
+                            category,
+                            url,
+                            reachable,
+                            evidenceText
+                    );
+
+            findings.add(
+                    ExposureFinding.builder()
+                            .category(category)
+                            .severity(
+                                    classifier.getSeverity(
+                                            category
+                                    )
+                            )
+                            .url(url)
+                            .reason(reason)
+                            .discovered(true)
+                            .targetOwned(true)
+                            .reachable(reachable)
+                            .redirected(redirected)
+                            .status(status)
+                            .contentType(contentType)
+                            .evidence(evidence)
+                            .build()
+            );
+
+            if (reachable) {
+                reachableFindings++;
+            }
+
+            if (category.startsWith("API_")) {
+                apiSurfaces++;
+            }
+
+            if (category.equals(
+                    "GRAPHQL"
+            )) {
+                graphqlSurfaces++;
+            }
+
+            if (category.equals(
+                    "CLOUD_STORAGE"
+            )) {
+                cloudStorageReferences++;
+            }
+
+            if (category.equals(
+                    "CONFIGURATION"
+            )) {
+                configurationSignals++;
+            }
         }
 
-        ScanSummary summary = ScanSummary.builder()
-            .totalFindings(findings.size())
-            .apiSurfaces(apiSurfaces)
-            .cloudStorageReferences(cloudStorageReferences)
-            .configurationSignals(configurationSignals)
-            .build();
+        ScanSummary summary =
+                ScanSummary.builder()
+                        .totalDiscovered(
+                                uniqueResults.size()
+                        )
+                        .relevantAssets(
+                                relevantAssets
+                        )
+                        .totalFindings(
+                                findings.size()
+                        )
+                        .reachableFindings(
+                                reachableFindings
+                        )
+                        .apiSurfaces(
+                                apiSurfaces
+                        )
+                        .cloudStorageReferences(
+                                cloudStorageReferences
+                        )
+                        .configurationSignals(
+                                configurationSignals
+                        )
+                        .graphqlSurfaces(
+                                graphqlSurfaces
+                        )
+                        .build();
 
         return ExposureReport.builder()
-            .domain(domain)
-            .scannedAt(Instant.now().toString())
-            .summary(summary)
-            .findings(findings)
-            .build();
+                .domain(normalizedDomain)
+                .scannedAt(
+                        Instant.now().toString()
+                )
+                .summary(summary)
+                .findings(findings)
+                .build();
+    }
+
+    private List<String> buildQueries(
+            String domain
+    ) {
+
+        return List.of(
+                "site:" + domain,
+
+                "site:" + domain
+                        + " (swagger OR \"swagger-ui\" OR openapi OR \"api docs\")",
+
+                "site:" + domain
+                        + " (\"/api/\" OR \"/v1/\" OR \"/v2/\")",
+
+                "site:" + domain
+                        + " (graphql OR \"/graphql\")",
+
+                "site:" + domain
+                        + " (filetype:json OR filetype:yaml OR filetype:yml)",
+
+                "site:" + domain
+                        + " (\"s3.amazonaws.com\" OR \"amazonaws.com\" OR \"storage.googleapis.com\" OR \"blob.core.windows.net\")"
+        );
+    }
+
+    private String normalizeDomain(
+            String domain
+    ) {
+
+        if (domain == null) {
+            return "";
+        }
+
+        String normalized =
+                domain.trim()
+                        .toLowerCase(Locale.ROOT);
+
+        normalized =
+                normalized.replaceFirst(
+                        "^https?://",
+                        ""
+                );
+
+        normalized =
+                normalized.split("/")[0];
+
+        normalized =
+                normalized.split(":")[0];
+
+        if (normalized.startsWith("www.")) {
+
+            normalized =
+                    normalized.substring(4);
+        }
+
+        return normalized;
+    }
+
+    private String normalizeUrl(
+            String url
+    ) {
+
+        if (url == null
+                || url.isBlank()) {
+
+            return null;
+        }
+
+        try {
+
+            java.net.URI uri =
+                    new java.net.URI(
+                            url.trim()
+                    );
+
+            String scheme =
+                    uri.getScheme();
+
+            String host =
+                    uri.getHost();
+
+            if (scheme == null
+                    || host == null) {
+
+                return null;
+            }
+
+            if (!scheme.equalsIgnoreCase("http")
+                    && !scheme.equalsIgnoreCase(
+                    "https"
+            )) {
+
+                return null;
+            }
+
+            return uri.toString();
+
+        } catch (Exception e) {
+
+            return null;
+        }
     }
 }
+
