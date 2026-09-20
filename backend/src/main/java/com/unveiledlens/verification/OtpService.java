@@ -16,39 +16,48 @@ public class OtpService {
 
     private final OtpRepository otpRepository;
     private final EmailService emailService;
-    private final SmsService smsService;
     private final PasswordEncoder passwordEncoder;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
     public void generateAndSendEmailOtp(String email) {
+
         String normalizedEmail = email.trim().toLowerCase();
+
         String otp = generateOtp();
 
         saveOtp(normalizedEmail, otp);
-        emailService.sendOtp(normalizedEmail, otp);
+
+        emailService.sendOtp(
+                normalizedEmail,
+                otp
+        );
     }
 
-    public void generateAndSendSmsOtp(String phone) {
-        String normalizedPhone = phone.trim();
-        String otp = generateOtp();
+    public boolean verifyOtp(
+            String target,
+            String otp
+    ) {
 
-        saveOtp(normalizedPhone, otp);
-        smsService.sendOtp(normalizedPhone, otp);
-    }
-
-    public boolean verifyOtp(String target, String otp) {
         if (target == null || otp == null) {
             return false;
         }
 
-        String normalizedTarget = target.trim();
-        String normalizedOtp = otp.trim();
+        String normalizedTarget =
+                target.trim().toLowerCase();
+
+        String normalizedOtp =
+                otp.trim();
 
         return otpRepository
-                .findTopByTargetAndUsedFalseOrderByCreatedAtDesc(normalizedTarget)
+                .findTopByTargetAndUsedFalseOrderByCreatedAtDesc(
+                        normalizedTarget
+                )
                 .map(verification -> {
-                    if (verification.getExpiresAt().isBefore(LocalDateTime.now())) {
+
+                    if (verification.getExpiresAt()
+                            .isBefore(LocalDateTime.now())) {
+
                         return false;
                     }
 
@@ -56,10 +65,12 @@ public class OtpService {
                             normalizedOtp,
                             verification.getOtp()
                     )) {
+
                         return false;
                     }
 
                     verification.setUsed(true);
+
                     otpRepository.save(verification);
 
                     return true;
@@ -67,26 +78,45 @@ public class OtpService {
                 .orElse(false);
     }
 
-    private void saveOtp(String target, String otp) {
-        OtpVerification verification = new OtpVerification();
+    private void saveOtp(
+            String target,
+            String otp
+    ) {
+
+        OtpVerification verification =
+                new OtpVerification();
 
         verification.setTarget(target);
-        verification.setOtp(passwordEncoder.encode(otp));
-        verification.setExpiresAt(
-                LocalDateTime.now().plusMinutes(OTP_EXPIRATION_MINUTES)
+
+        verification.setOtp(
+                passwordEncoder.encode(otp)
         );
+
+        verification.setExpiresAt(
+                LocalDateTime.now()
+                        .plusMinutes(OTP_EXPIRATION_MINUTES)
+        );
+
         verification.setUsed(false);
-        verification.setCreatedAt(LocalDateTime.now());
+
+        verification.setCreatedAt(
+                LocalDateTime.now()
+        );
 
         otpRepository.save(verification);
     }
 
     private String generateOtp() {
-        int bound = (int) Math.pow(10, OTP_LENGTH);
 
-        int value = secureRandom.nextInt(bound);
+        int bound =
+                (int) Math.pow(10, OTP_LENGTH);
 
-        return String.format("%0" + OTP_LENGTH + "d", value);
+        int value =
+                secureRandom.nextInt(bound);
+
+        return String.format(
+                "%0" + OTP_LENGTH + "d",
+                value
+        );
     }
 }
-

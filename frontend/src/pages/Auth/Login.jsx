@@ -1,99 +1,212 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Phone } from 'lucide-react';
+import { Mail, Lock, Loader2 } from 'lucide-react';
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 export default function Login() {
-  const [isAdmin, setIsAdmin] = useState(false);
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    // Mock login -> redirect to search results
-    localStorage.setItem('token', 'mock-jwt-token');
-    localStorage.setItem('role', isAdmin ? 'ROLE_ADMIN' : 'ROLE_USER');
-    navigate('/search');
+  const handleLogin = async (event) => {
+
+    event.preventDefault();
+
+    setError('');
+    setLoading(true);
+
+    try {
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/auth/login`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            identifier: identifier.trim().toLowerCase(),
+            password
+          })
+        }
+      );
+
+      const data =
+        await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message ||
+          data?.error ||
+          'Invalid email or password.'
+        );
+      }
+
+      localStorage.setItem(
+        'token',
+        data.token
+      );
+
+      localStorage.setItem(
+        'role',
+        'ROLE_USER'
+      );
+
+      navigate('/search');
+
+    } catch (err) {
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to login.'
+      );
+
+    } finally {
+
+      setLoading(false);
+    }
   };
 
   return (
     <div>
-      <div className="flex justify-center space-x-4 mb-6 border-b border-glass-border pb-4">
-        <button
-          onClick={() => setIsAdmin(false)}
-          className={`text-sm font-medium transition-colors ${!isAdmin ? 'text-accent-amber' : 'text-gray-400 hover:text-white'}`}
-        >
-          User Login
-        </button>
-        <button
-          onClick={() => setIsAdmin(true)}
-          className={`text-sm font-medium transition-colors ${isAdmin ? 'text-accent-amber' : 'text-gray-400 hover:text-white'}`}
-        >
-          Admin Login
-        </button>
-      </div>
 
       <h2 className="text-2xl font-bold text-white mb-6 text-center">
-        {isAdmin ? 'Admin Portal' : 'Welcome Back'}
+        Welcome Back
       </h2>
-      
-      <form onSubmit={handleLogin} className="space-y-6">
+
+      <form
+        onSubmit={handleLogin}
+        className="space-y-6"
+      >
+
         <div>
+
           <label className="block text-sm font-medium text-gray-300 mb-1">
-            {isAdmin ? 'Phone Number' : 'Email Address'}
+            Email Address
           </label>
+
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              {isAdmin ? (
-                <Phone className="h-5 w-5 text-gray-500" />
-              ) : (
-                <Mail className="h-5 w-5 text-gray-500" />
-              )}
-            </div>
+
+            <Mail
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500"
+            />
+
             <input
-              type={isAdmin ? "tel" : "email"}
+              type="email"
               required
               value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
+              onChange={(event) =>
+                setIdentifier(event.target.value)
+              }
               className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-amber focus:border-accent-amber sm:text-sm"
-              placeholder={isAdmin ? "+1 (555) 000-0000" : "you@example.com"}
+              placeholder="you@example.com"
             />
+
           </div>
+
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Password</label>
+
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Password
+          </label>
+
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Lock className="h-5 w-5 text-gray-500" />
-            </div>
+
+            <Lock
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500"
+            />
+
             <input
               type="password"
               required
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(event) =>
+                setPassword(event.target.value)
+              }
               className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-amber focus:border-accent-amber sm:text-sm"
               placeholder="••••••••"
             />
+
           </div>
+
         </div>
+
+        {error && (
+          <div className="rounded-md border border-red-900/60 bg-red-950/30 px-4 py-3 text-sm text-red-300">
+            {error}
+          </div>
+        )}
 
         <button
           type="submit"
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-accent-burnt hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-charcoal focus:ring-accent-amber transition-colors glow-amber"
+          disabled={loading}
+          className="w-full flex justify-center items-center gap-2 py-2 px-4 rounded-md text-sm font-medium text-white bg-accent-burnt hover:bg-accent-dark disabled:opacity-60 transition-colors glow-amber"
         >
-          Sign In
+
+          {loading && (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          )}
+
+          {loading
+            ? 'Signing in...'
+            : 'Sign In'}
+
         </button>
+
       </form>
 
-      <div className="mt-6 text-center">
+      <div className="mt-6 text-center space-y-3">
+
         <p className="text-sm text-gray-400">
+
           Don't have an account?{' '}
-          <Link to={isAdmin ? "/register-admin" : "/register"} className="font-medium text-accent-amber hover:text-accent-burnt transition-colors">
-            Register as {isAdmin ? 'Admin' : 'User'}
+
+          <Link
+            to="/register"
+            className="font-medium text-accent-amber hover:text-accent-burnt"
+          >
+            Register as User
           </Link>
+
         </p>
+
+        <p className="text-sm text-gray-400">
+
+          Need admin access?{' '}
+
+          <Link
+            to="/admin-request"
+            className="font-medium text-accent-amber hover:text-accent-burnt"
+          >
+            Request Admin Access
+          </Link>
+
+        </p>
+
+        <p className="text-sm text-gray-400">
+
+          Already authorized?{' '}
+
+          <Link
+            to="/admin-verify"
+            className="font-medium text-accent-amber hover:text-accent-burnt"
+          >
+            Admin Authentication
+          </Link>
+
+        </p>
+
       </div>
+
     </div>
   );
 }

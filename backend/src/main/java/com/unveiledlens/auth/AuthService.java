@@ -26,33 +26,54 @@ public class AuthService {
     private final OtpService otpService;
     private final AuditService auditService;
 
-    public AuthResponse registerUser(RegisterRequest request) {
+    public AuthResponse registerUser(
+            RegisterRequest request
+    ) {
 
-        String email = normalizeEmail(request.getEmail());
+        String email =
+                normalizeEmail(
+                        request.getEmail()
+                );
 
-        if (userRepository.findByEmail(email).isPresent()) {
+        if (userRepository
+                .findByEmail(email)
+                .isPresent()) {
+
             throw new IllegalStateException(
                     "An account already exists with this email."
             );
         }
 
-        User user = new User();
-        user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.ROLE_USER);
+        User user =
+                new User();
 
-        /*
-         * Save the account first because the OTP verification flow currently
-         * identifies the pending registration by email.
-         */
+        user.setEmail(email);
+
+        user.setPassword(
+                passwordEncoder.encode(
+                        request.getPassword()
+                )
+        );
+
+        user.setRole(
+                Role.ROLE_USER
+        );
+
         userRepository.save(user);
 
         try {
-            otpService.generateAndSendEmailOtp(email);
+
+            otpService.generateAndSendEmailOtp(
+                    email
+            );
+
         } catch (RuntimeException exception) {
+
             userRepository.delete(user);
+
             throw new IllegalStateException(
-                    "Unable to send verification email. Please check the email configuration.",
+                    "Unable to send verification email. "
+                            + "Please check the email configuration.",
                     exception
             );
         }
@@ -69,63 +90,38 @@ public class AuthService {
         );
     }
 
-    public AuthResponse registerAdmin(AdminRegisterRequest request) {
+    public AuthResponse verifyOtp(
+            VerifyOtpRequest request
+    ) {
 
-        String phone = normalizePhone(request.getPhone());
+        String identifier =
+                normalizeIdentifier(
+                        request.getIdentifier()
+                );
 
-        if (userRepository.findByPhone(phone).isPresent()) {
-            throw new IllegalStateException(
-                    "An account already exists with this phone number."
-            );
-        }
-
-        User user = new User();
-        user.setPhone(phone);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.ROLE_ADMIN);
-
-        userRepository.save(user);
-
-        try {
-            otpService.generateAndSendSmsOtp(phone);
-        } catch (RuntimeException exception) {
-            userRepository.delete(user);
-            throw new IllegalStateException(
-                    "Unable to send verification SMS. Please check the SMS provider configuration.",
-                    exception
-            );
-        }
-
-        auditService.log(
-                "ADMIN_PHONE_VERIFICATION_REQUESTED",
-                "Admin phone OTP requested",
-                user.getId()
-        );
-
-        return new AuthResponse(
-                null,
-                "Verification code sent to your phone."
-        );
-    }
-
-    public AuthResponse verifyOtp(VerifyOtpRequest request) {
-
-        String identifier = normalizeIdentifier(request.getIdentifier());
-
-        boolean valid = otpService.verifyOtp(
-                identifier,
-                request.getOtp()
-        );
+        boolean valid =
+                otpService.verifyOtp(
+                        identifier,
+                        request.getOtp()
+                );
 
         if (!valid) {
-            throw new IllegalArgumentException("Invalid or expired OTP.");
+
+            throw new IllegalArgumentException(
+                    "Invalid or expired OTP."
+            );
         }
 
-        User user = findUserByIdentifier(identifier);
+        User user =
+                findUserByIdentifier(
+                        identifier
+                );
 
         if (user == null) {
+
             throw new IllegalArgumentException(
-                    "No registration was found for this verification target."
+                    "No registration was found "
+                            + "for this verification target."
             );
         }
 
@@ -141,9 +137,14 @@ public class AuthService {
         );
     }
 
-    public AuthResponse login(LoginRequest request) {
+    public AuthResponse login(
+            LoginRequest request
+    ) {
 
-        String identifier = normalizeIdentifier(request.getIdentifier());
+        String identifier =
+                normalizeIdentifier(
+                        request.getIdentifier()
+                );
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -152,15 +153,42 @@ public class AuthService {
                 )
         );
 
-        UserDetails user =
-                userDetailsService.loadUserByUsername(identifier);
+        User account =
+                findUserByIdentifier(
+                        identifier
+                );
 
-        String jwtToken = jwtService.generateToken(user);
+        if (account == null) {
+
+            throw new IllegalArgumentException(
+                    "Invalid credentials."
+            );
+        }
+
+        if (account.getRole()
+                == Role.ROLE_ADMIN) {
+
+            throw new IllegalArgumentException(
+                    "Admin accounts must use "
+                            + "Admin Authorization ID and email OTP."
+            );
+        }
+
+        UserDetails user =
+                userDetailsService
+                        .loadUserByUsername(
+                                identifier
+                        );
+
+        String jwtToken =
+                jwtService.generateToken(
+                        user
+                );
 
         auditService.log(
                 "LOGIN",
                 "User logged in",
-                null
+                account.getId()
         );
 
         return new AuthResponse(
@@ -169,34 +197,41 @@ public class AuthService {
         );
     }
 
-    private User findUserByIdentifier(String identifier) {
+    private User findUserByIdentifier(
+            String identifier
+    ) {
 
         if (identifier.contains("@")) {
-            return userRepository.findByEmail(identifier).orElse(null);
+
+            return userRepository
+                    .findByEmail(identifier)
+                    .orElse(null);
         }
 
-        return userRepository.findByPhone(identifier).orElse(null);
+        return userRepository
+                .findByPhone(identifier)
+                .orElse(null);
     }
 
-    private String normalizeEmail(String email) {
+    private String normalizeEmail(
+            String email
+    ) {
+
         return email == null
                 ? ""
                 : email.trim().toLowerCase();
     }
 
-    private String normalizePhone(String phone) {
-        return phone == null
-                ? ""
-                : phone.trim();
-    }
-
-    private String normalizeIdentifier(String identifier) {
+    private String normalizeIdentifier(
+            String identifier
+    ) {
 
         if (identifier == null) {
             return "";
         }
 
-        String normalized = identifier.trim();
+        String normalized =
+                identifier.trim();
 
         if (normalized.contains("@")) {
             return normalized.toLowerCase();
@@ -205,4 +240,3 @@ public class AuthService {
         return normalized;
     }
 }
-

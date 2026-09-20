@@ -27,6 +27,7 @@ spring:
 jwt:
   secret: ${JWT_SECRET:8a4b6c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b}
   expiration: 86400000
+  admin-expiration: 28800000
 
 serpapi:
   key: ${SERPAPI_KEY:}
@@ -38,3 +39,9 @@ ollama:
 unveiledlens:
   verification:
     test-email: larvianankani11@gmail.com
+
+admin:
+  approval-email: ${ADMIN_APPROVAL_EMAIL}
+  request-expiration: 86400000
+  authorization-expiration: 2592000000
+  

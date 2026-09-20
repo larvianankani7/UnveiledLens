@@ -26,35 +26,62 @@ public class SecurityConfig {
     private final AuthenticationProvider authenticationProvider;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http
+    ) throws Exception {
 
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-            .csrf(csrf -> csrf.disable())
-
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                // Public authentication endpoints
-                .requestMatchers("/api/auth/**").permitAll()
-
-                // Admin-only application endpoints
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-
-                // Everything else requires authentication
-                .anyRequest().authenticated()
+            .cors(cors ->
+                    cors.configurationSource(
+                            corsConfigurationSource()
+                    )
             )
 
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .csrf(csrf ->
+                    csrf.disable()
             )
 
-            .authenticationProvider(authenticationProvider)
+            .authorizeHttpRequests(auth ->
+                    auth
+
+                    .requestMatchers(
+                            HttpMethod.OPTIONS,
+                            "/**"
+                    )
+                    .permitAll()
+
+                    .requestMatchers(
+                            "/api/auth/**"
+                    )
+                    .permitAll()
+
+                    .requestMatchers(
+                            "/api/admin-access/**"
+                    )
+                    .permitAll()
+
+                    .requestMatchers(
+                            "/api/admin/**"
+                    )
+                    .hasRole("ADMIN")
+
+                    .anyRequest()
+                    .authenticated()
+            )
+
+            .sessionManagement(session ->
+                    session.sessionCreationPolicy(
+                            SessionCreationPolicy.STATELESS
+                    )
+            )
+
+            .authenticationProvider(
+                    authenticationProvider
+            )
 
             .addFilterBefore(
-                jwtAuthFilter,
-                UsernamePasswordAuthenticationFilter.class
+                    jwtAuthFilter,
+                    UsernamePasswordAuthenticationFilter.class
             );
 
         return http.build();
@@ -63,35 +90,40 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
-        CorsConfiguration configuration = new CorsConfiguration();
+        CorsConfiguration configuration =
+                new CorsConfiguration();
 
         configuration.setAllowedOrigins(
-            List.of("http://localhost:3000")
+                List.of(
+                        "http://localhost:3000"
+                )
         );
 
         configuration.setAllowedMethods(
-            List.of(
-                "GET",
-                "POST",
-                "PUT",
-                "PATCH",
-                "DELETE",
-                "OPTIONS"
-            )
+                List.of(
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "PATCH",
+                        "DELETE",
+                        "OPTIONS"
+                )
         );
 
         configuration.setAllowedHeaders(
-            List.of("*")
+                List.of("*")
         );
 
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(
+                true
+        );
 
         UrlBasedCorsConfigurationSource source =
-            new UrlBasedCorsConfigurationSource();
+                new UrlBasedCorsConfigurationSource();
 
         source.registerCorsConfiguration(
-            "/**",
-            configuration
+                "/**",
+                configuration
         );
 
         return source;
