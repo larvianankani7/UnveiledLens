@@ -138,44 +138,71 @@ public class AdminDiscoveryController {
     ) {
 
         return AdminExposureFinding.builder()
-                .category(finding.getCategory())
-                .severity(finding.getSeverity())
-                .url(
-                        redactionService.redactUrl(
-                                finding.getUrl()
-                        )
+        .category(finding.getCategory())
+        .severity(finding.getSeverity())
+        .url(
+                redactionService.redactUrl(
+                        finding.getUrl()
                 )
-                .reason(
-                        redactionService.redact(
-                                finding.getReason()
-                        )
+        )
+        .reason(
+                redactionService.redact(
+                        finding.getReason()
                 )
-                .discovered(
-                        finding.isDiscovered()
+        )
+        .discovered(
+                finding.isDiscovered()
+        )
+        .targetOwned(
+                finding.isTargetOwned()
+        )
+        .reachable(
+                finding.isReachable()
+        )
+        .redirected(
+                finding.isRedirected()
+        )
+        .authRequired(
+                finding.isAuthRequired()
+        )
+        .loginRedirect(
+                finding.isLoginRedirect()
+        )
+        .corsWildcard(
+                finding.isCorsWildcard()
+        )
+        .status(
+                finding.getStatus()
+        )
+        .contentType(
+                redactionService.redact(
+                        finding.getContentType()
                 )
-                .targetOwned(
-                        finding.isTargetOwned()
+        )
+        .riskLevel(
+                finding.getRiskLevel()
+        )
+        .evidence(
+                redactionService.redactList(
+                        finding.getEvidence()
                 )
-                .reachable(
-                        finding.isReachable()
+        )
+        .compliance(
+                redactionService.redactList(
+                        finding.getCompliance()
                 )
-                .redirected(
-                        finding.isRedirected()
+        )
+        .attackChainSignals(
+                redactionService.redactList(
+                        finding.getAttackChainSignals()
                 )
-                .status(
-                        finding.getStatus()
+        )
+        .remediation(
+                redactionService.redact(
+                        finding.getRemediation()
                 )
-                .contentType(
-                        redactionService.redact(
-                                finding.getContentType()
-                        )
-                )
-                .evidence(
-                        redactionService.redactList(
-                                finding.getEvidence()
-                        )
-                )
-                .build();
+        )
+        .build();
     }
 
     private String normalizeDomain(

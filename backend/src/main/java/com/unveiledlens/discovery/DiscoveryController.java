@@ -1,17 +1,23 @@
 package com.unveiledlens.discovery;
 
+import com.unveiledlens.admin.AdminScanRequest;
 import com.unveiledlens.discovery.dto.ExposureReport;
 import com.unveiledlens.discovery.dto.ScanSummary;
 import com.unveiledlens.discovery.dto.UserExposureReport;
 import com.unveiledlens.discovery.dto.UserExposureSummary;
+import com.unveiledlens.report.PdfReportService;
 import com.unveiledlens.user.User;
 import com.unveiledlens.user.UserRepository;
+
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.Map;
 
 @RestController
@@ -19,162 +25,345 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class DiscoveryController {
 
+    private final DiscoveryService discoveryService;
+    private final UserRepository userRepository;
+    private final PdfReportService pdfReportService;
 
-private final DiscoveryService discoveryService;
-private final UserRepository userRepository;
 
-@PostMapping("/scan")
-public ResponseEntity<?> startScan(
-        Authentication authentication
-) {
+    @PostMapping("/report/pdf")
+    public ResponseEntity<byte[]> generatePdf(
+            @Valid @RequestBody AdminScanRequest request
+    ) {
 
-    if (authentication == null
-            || !authentication.isAuthenticated()) {
+        String domain;
 
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(
-                        Map.of(
-                                "error",
-                                "Authentication required."
-                        )
-                );
-    }
+        try {
 
-    String email =
-            authentication.getName();
+            domain =
+                    normalizeDomain(
+                            request.getDomain()
+                    );
 
-    User user =
-            userRepository
-                    .findByEmail(email)
-                    .orElse(null);
+        } catch (IllegalArgumentException e) {
 
-    if (user == null) {
-
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(
-                        Map.of(
-                                "error",
-                                "Authenticated user was not found."
-                        )
-                );
-    }
-
-    String domain =
-            user.getDomain();
-
-    if (domain == null
-            || domain.isBlank()) {
-
-        return ResponseEntity
-                .status(
-                        HttpStatus.UNPROCESSABLE_ENTITY
-                )
-                .body(
-                        Map.of(
-                                "error",
-                                "No verified domain is associated with this account."
-                        )
-                );
-    }
-
-    ExposureReport detailedReport =
-            discoveryService.runDiscovery(domain);
-
-    return ResponseEntity.ok(
-            buildUserReport(detailedReport)
-    );
-}
-
-private UserExposureReport buildUserReport(
-        ExposureReport report
-) {
-
-    ScanSummary detailedSummary =
-            report.getSummary();
-
-    int potentialSignals =
-            detailedSummary.getTotalFindings();
-
-    String exposureLevel =
-            determineExposureLevel(
-                    potentialSignals
-            );
-
-    String overview =
-            buildOverview(
-                    potentialSignals,
-                    detailedSummary.getReachableFindings()
-            );
-
-    UserExposureSummary summary =
-            UserExposureSummary.builder()
-                    .publiclyDiscovered(
-                            detailedSummary.getTotalDiscovered()
-                    )
-                    .potentialSignals(
-                            potentialSignals
-                    )
-                    .apiSignals(
-                            detailedSummary.getApiSurfaces()
-                    )
-                    .graphqlSignals(
-                            detailedSummary.getGraphqlSurfaces()
-                    )
-                    .configurationSignals(
-                            detailedSummary.getConfigurationSignals()
-                    )
-                    .storageSignals(
-                            detailedSummary.getCloudStorageReferences()
-                    )
+            return ResponseEntity
+                    .badRequest()
                     .build();
+        }
 
-    return UserExposureReport.builder()
-            .domain(report.getDomain())
-            .scannedAt(report.getScannedAt())
-            .exposureLevel(exposureLevel)
-            .overview(overview)
-            .summary(summary)
-            .build();
-}
+        if (!isValidDomain(domain)) {
 
-private String determineExposureLevel(
-        int potentialSignals
-) {
+            return ResponseEntity
+                    .badRequest()
+                    .build();
+        }
 
-    if (potentialSignals == 0) {
-        return "NO_SIGNIFICANT_SIGNALS";
+        ExposureReport report =
+                discoveryService.runAdminDiscovery(
+                        domain
+                );
+
+        byte[] pdf =
+                pdfReportService.generateReport(
+                        report
+                );
+
+        return ResponseEntity
+                .ok()
+                .header(
+                        "Content-Disposition",
+                        "attachment; filename=\"unveiledlens-report.pdf\""
+                )
+                .header(
+                        "Content-Type",
+                        "application/pdf"
+                )
+                .body(pdf);
     }
 
-    if (potentialSignals <= 2) {
-        return "LIMITED";
+
+    @PostMapping("/scan")
+    public ResponseEntity<?> startScan(
+            Authentication authentication
+    ) {
+
+        if (authentication == null
+                || !authentication.isAuthenticated()) {
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(
+                            Map.of(
+                                    "error",
+                                    "Authentication required."
+                            )
+                    );
+        }
+
+        String email =
+                authentication.getName();
+
+        User user =
+                userRepository
+                        .findByEmail(email)
+                        .orElse(null);
+
+        if (user == null) {
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(
+                            Map.of(
+                                    "error",
+                                    "Authenticated user was not found."
+                            )
+                    );
+        }
+
+        String domain =
+                user.getDomain();
+
+        if (domain == null
+                || domain.isBlank()) {
+
+            return ResponseEntity
+                    .status(
+                            HttpStatus.UNPROCESSABLE_ENTITY
+                    )
+                    .body(
+                            Map.of(
+                                    "error",
+                                    "No verified domain is associated with this account."
+                            )
+                    );
+        }
+
+        try {
+
+            domain =
+                    normalizeDomain(
+                            domain
+                    );
+
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity
+                    .status(
+                            HttpStatus.UNPROCESSABLE_ENTITY
+                    )
+                    .body(
+                            Map.of(
+                                    "error",
+                                    "The domain associated with this account is invalid."
+                            )
+                    );
+        }
+
+        ExposureReport detailedReport =
+                discoveryService.runDiscovery(
+                        domain
+                );
+
+        return ResponseEntity.ok(
+                buildUserReport(
+                        detailedReport
+                )
+        );
     }
 
-    if (potentialSignals <= 5) {
-        return "MODERATE";
+
+    private String normalizeDomain(
+            String domain
+    ) {
+
+        if (domain == null) {
+
+            throw new IllegalArgumentException(
+                    "Domain is required"
+            );
+        }
+
+        String normalized =
+                domain
+                        .trim()
+                        .toLowerCase();
+
+        if (normalized.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Domain is required"
+            );
+        }
+
+        if (!normalized.startsWith("http://")
+                && !normalized.startsWith("https://")) {
+
+            normalized =
+                    "https://" + normalized;
+        }
+
+        try {
+
+            URI uri =
+                    URI.create(
+                            normalized
+                    );
+
+            String host =
+                    uri.getHost();
+
+            if (host == null
+                    || host.isBlank()) {
+
+                throw new IllegalArgumentException(
+                        "Invalid domain"
+                );
+            }
+
+            return host
+                    .toLowerCase()
+                    .replaceFirst(
+                            "^www\\.",
+                            ""
+                    );
+
+        } catch (Exception e) {
+
+            throw new IllegalArgumentException(
+                    "Invalid domain",
+                    e
+            );
+        }
     }
 
-    return "ELEVATED";
-}
 
-private String buildOverview(
-        int potentialSignals,
-        int reachableSignals
-) {
+    private boolean isValidDomain(
+            String domain
+    ) {
 
-    if (potentialSignals == 0) {
+        if (domain == null
+                || domain.isBlank()) {
 
-        return "No significant public exposure signals were identified by the current discovery checks.";
+            return false;
+        }
+
+        if (domain.length() > 253) {
+
+            return false;
+        }
+
+        return domain.matches(
+                "^(?=.{1,253}$)(?!-)(?:[a-zA-Z0-9-]{1,63}\\.)+[a-zA-Z]{2,63}$"
+        );
     }
 
-    if (reachableSignals == 0) {
 
-        return "Several technical exposure signals were identified, but the current checks did not confirm direct public reachability.";
+    private UserExposureReport buildUserReport(
+            ExposureReport report
+    ) {
+
+        ScanSummary detailedSummary =
+                report.getSummary();
+
+        int potentialSignals =
+                detailedSummary.getTotalFindings();
+
+        String exposureLevel =
+                determineExposureLevel(
+                        potentialSignals
+                );
+
+        String overview =
+                buildOverview(
+                        potentialSignals,
+                        detailedSummary.getReachableFindings()
+                );
+
+        UserExposureSummary summary =
+                UserExposureSummary.builder()
+                        .publiclyDiscovered(
+                                detailedSummary
+                                        .getTotalDiscovered()
+                        )
+                        .potentialSignals(
+                                potentialSignals
+                        )
+                        .apiSignals(
+                                detailedSummary
+                                        .getApiSurfaces()
+                        )
+                        .graphqlSignals(
+                                detailedSummary
+                                        .getGraphqlSurfaces()
+                        )
+                        .configurationSignals(
+                                detailedSummary
+                                        .getConfigurationSignals()
+                        )
+                        .storageSignals(
+                                detailedSummary
+                                        .getCloudStorageReferences()
+                        )
+                        .build();
+
+        return UserExposureReport.builder()
+                .domain(
+                        report.getDomain()
+                )
+                .scannedAt(
+                        report.getScannedAt()
+                )
+                .exposureLevel(
+                        exposureLevel
+                )
+                .overview(
+                        overview
+                )
+                .summary(
+                        summary
+                )
+                .build();
     }
 
-    return "The scan identified technical resources that may deserve further security review.";
-}
+
+    private String determineExposureLevel(
+            int potentialSignals
+    ) {
+
+        if (potentialSignals == 0) {
+
+            return "NO_SIGNIFICANT_SIGNALS";
+        }
+
+        if (potentialSignals <= 2) {
+
+            return "LIMITED";
+        }
+
+        if (potentialSignals <= 5) {
+
+            return "MODERATE";
+        }
+
+        return "ELEVATED";
+    }
 
 
+    private String buildOverview(
+            int potentialSignals,
+            int reachableSignals
+    ) {
+
+        if (potentialSignals == 0) {
+
+            return "No significant public exposure signals were identified by the current discovery checks.";
+        }
+
+        if (reachableSignals == 0) {
+
+            return "Several technical exposure signals were identified, but the current checks did not confirm direct public reachability.";
+        }
+
+        return "The scan identified technical resources that may deserve further security review.";
+    }
 }

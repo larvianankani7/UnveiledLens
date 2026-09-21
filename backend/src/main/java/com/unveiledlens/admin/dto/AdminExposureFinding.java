@@ -20,8 +20,18 @@ public class AdminExposureFinding {
     private boolean reachable;
     private boolean redirected;
 
+    private boolean authRequired;
+    private boolean loginRedirect;
+    private boolean corsWildcard;
+
     private Integer status;
     private String contentType;
 
+    private String riskLevel;
+
     private List<String> evidence;
+    private List<String> compliance;
+    private List<String> attackChainSignals;
+
+    private String remediation;
 }

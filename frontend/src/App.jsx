@@ -11,70 +11,70 @@ import Register from './pages/Auth/Register.jsx';
 import AdminRequest from './pages/Auth/AdminRequest.jsx';
 import AdminVerify from './pages/Auth/AdminVerify.jsx';
 import AdminApproval from './pages/Auth/AdminApproval.jsx';
+
 import AdminDashboard from './pages/Admin/AdminDashboard.jsx';
 import SearchResults from './pages/SearchResults/SearchResults.jsx';
 import Settings from './pages/Settings/Settings.jsx';
 
 function App() {
-  return (
-    <Routes>
+    return (
+        <Routes>
 
-      <Route element={<MainLayout />}>
-        <Route
-          path="/"
-          element={<Landing />}
-        />
-      </Route>
+            <Route element={<MainLayout />}>
 
-      <Route element={<AuthLayout />}>
+                <Route
+                    path="/"
+                    element={<Landing />}
+                />
 
-        <Route
-          path="/login"
-          element={<Login />}
-        />
+                <Route
+                    path="/search"
+                    element={<SearchResults />}
+                />
 
-        <Route
-          path="/register"
-          element={<Register />}
-        />
+                <Route
+                    path="/settings"
+                    element={<Settings />}
+                />
 
-        <Route
-          path="/admin-request"
-          element={<AdminRequest />}
-        />
+            </Route>
 
-        <Route
-          path="/admin-verify"
-          element={<AdminVerify />}
-        />
+            <Route element={<AuthLayout />}>
 
-        <Route
-          path="/admin-approval/:token"
-          element={<AdminApproval />}
-        />
+                <Route
+                    path="/login"
+                    element={<Login />}
+                />
 
-      </Route>
+                <Route
+                    path="/register"
+                    element={<Register />}
+                />
 
-      <Route element={<MainLayout />}>
+                <Route
+                    path="/admin-request"
+                    element={<AdminRequest />}
+                />
 
-        <Route
-          path="/search"
-          element={<SearchResults />}
-        />
+                <Route
+                    path="/admin-verify"
+                    element={<AdminVerify />}
+                />
 
-        <Route
-          path="/settings"
-          element={<Settings />}
-        />
-        <Route
-          path="/admin"
-          element={<AdminDashboard />}
-        />
+                <Route
+                    path="/admin-approval/:token"
+                    element={<AdminApproval />}
+                />
 
-      </Route>
+            </Route>
 
-    </Routes>
-  );
+            <Route
+                path="/admin"
+                element={<AdminDashboard />}
+            />
+
+        </Routes>
+    );
 }
 
 export default App;

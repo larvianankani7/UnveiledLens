@@ -1,63 +1,65 @@
-
 package com.unveiledlens.ai;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@Slf4j
 @Service
+@RequiredArgsConstructor
 public class OllamaService {
+
+    private final ObjectMapper objectMapper;
+
 
     @Value("${ollama.url:http://localhost:11434}")
     private String ollamaUrl;
 
+
     @Value("${ollama.model:llama3}")
     private String model;
 
-    private final RestTemplate restTemplate =
-            new RestTemplate();
 
-    private final ObjectMapper objectMapper =
-            new ObjectMapper();
-
-    public String interpret(
+    public String generateInterpretation(
             String category,
-            String url,
-            boolean reachable,
             String evidence
     ) {
 
+        return generateInterpretation(
+                category,
+                evidence,
+                false
+        );
+    }
+
+
+    public String generateInterpretation(
+            String category,
+            String evidence,
+            boolean authRequired
+    ) {
+
         String prompt =
-                """
-                You are the security analyst component of UnveiledLens.
-
-                Explain the supplied deterministic security finding
-                in one or two concise sentences.
-
-                Do not invent vulnerabilities.
-                Do not claim a vulnerability is confirmed unless the evidence explicitly supports it.
-                Treat public discovery and HTTP reachability as signals, not proof of a security vulnerability.
-                Do not recommend exploitation or bypass techniques.
-
-                Category: %s
-                URL: %s
-                Reachable: %s
-                Evidence: %s
-                """.formatted(
+                buildPrompt(
                         category,
-                        url,
-                        reachable,
-                        evidence
+                        evidence,
+                        authRequired
                 );
 
         try {
+
+            WebClient client =
+                    WebClient.builder()
+                            .baseUrl(ollamaUrl)
+                            .build();
 
             Map<String, Object> request =
                     new HashMap<>();
@@ -78,84 +80,161 @@ public class OllamaService {
             );
 
             String response =
-                    restTemplate.postForObject(
-                            ollamaUrl
-                                    + "/api/generate",
-                            request,
-                            String.class
-                    );
+                    client.post()
+                            .uri("/api/generate")
+                            .contentType(
+                                    MediaType.APPLICATION_JSON
+                            )
+                            .bodyValue(request)
+                            .retrieve()
+                            .bodyToMono(
+                                    String.class
+                            )
+                            .block();
 
             if (response == null
                     || response.isBlank()) {
 
-                return fallback(
+                return fallbackInterpretation(
                         category,
-                        reachable
+                        authRequired
                 );
             }
 
-            JsonNode root =
-                    objectMapper.readTree(response);
+            JsonNode json =
+                    objectMapper.readTree(
+                            response
+                    );
 
-            String generated =
-                    root.path("response")
-                            .asText("")
-                            .trim();
+            JsonNode generated =
+                    json.get("response");
 
-            if (generated.isBlank()) {
+            if (generated == null
+                    || generated.asText().isBlank()) {
 
-                return fallback(
+                return fallbackInterpretation(
                         category,
-                        reachable
+                        authRequired
                 );
             }
 
-            return generated;
+            return generated
+                    .asText()
+                    .trim();
 
         } catch (Exception e) {
 
-            log.debug(
-                    "Ollama interpretation unavailable: {}",
-                    e.getMessage()
-            );
-
-            return fallback(
+            return fallbackInterpretation(
                     category,
-                    reachable
+                    authRequired
             );
         }
     }
 
-    private String fallback(
+
+    private String buildPrompt(
             String category,
-            boolean reachable
+            String evidence,
+            boolean authRequired
     ) {
 
-        if (!reachable) {
+        return """
+                You are the security analysis component of UnveiledLens.
 
-            return "A target-owned resource was discovered, but safe HTTP validation did not confirm a successful direct response.";
+                Interpret the observed security exposure signal below.
+
+                Rules:
+                - Do not claim exploitation.
+                - Do not invent vulnerabilities.
+                - Do not suggest authentication bypass.
+                - Do not provide attack instructions.
+                - Do not invent facts.
+                - Keep the explanation concise.
+                - Explain why the observation may matter.
+                - Clearly distinguish observed facts from implications.
+
+                Category:
+                %s
+
+                Authentication required:
+                %s
+
+                Observed evidence:
+                %s
+
+                Return only a concise security interpretation
+                suitable for an enterprise security report.
+                """.formatted(
+                safe(category),
+                authRequired,
+                safe(evidence)
+        );
+    }
+
+
+    private String fallbackInterpretation(
+            String category,
+            boolean authRequired
+    ) {
+
+        if (authRequired) {
+
+            return "The discovered resource appears to require authentication. "
+                    + "The finding should still be reviewed to confirm that "
+                    + "access controls are appropriate for the resource.";
         }
 
-        return switch (category) {
+        String normalizedCategory =
+                category == null
+                        ? ""
+                        : category.toUpperCase();
 
-            case "API_DOCUMENTATION" ->
-                    "Target-owned API documentation appears publicly reachable and may reveal implementation details or available API operations.";
-
-            case "GRAPHQL" ->
-                    "A target-owned GraphQL surface appears publicly reachable and should be reviewed for intended public exposure.";
-
-            case "API_ENDPOINT" ->
-                    "A target-owned API endpoint was discovered and appears publicly reachable.";
-
-            case "CLOUD_STORAGE" ->
-                    "A cloud-storage reference associated with the target was discovered and should be reviewed for unintended public exposure.";
+        return switch (normalizedCategory) {
 
             case "CONFIGURATION" ->
-                    "A configuration-like resource appears publicly reachable and should be reviewed for sensitive information.";
+                    "A publicly discoverable configuration resource "
+                            + "may expose implementation or deployment "
+                            + "information that should not be externally "
+                            + "accessible.";
+
+            case "API_DOCUMENTATION" ->
+                    "Public API documentation can reveal application "
+                            + "interfaces, available operations, and "
+                            + "implementation details. Review whether "
+                            + "the documentation is intentionally public.";
+
+            case "GRAPHQL" ->
+                    "A publicly discoverable GraphQL surface may expose "
+                            + "application functionality and should be "
+                            + "reviewed to ensure appropriate access controls.";
+
+            case "CLOUD_STORAGE" ->
+                    "A publicly discoverable cloud-storage reference "
+                            + "may expose information or resources beyond "
+                            + "what was intended to be externally visible.";
+
+            case "API_ENDPOINT" ->
+                    "A publicly discoverable API endpoint should be "
+                            + "reviewed to confirm that authentication, "
+                            + "authorization, and exposure are intentional.";
 
             default ->
-                    "A target-owned publicly reachable resource was discovered and should be reviewed for intended exposure.";
+                    "The discovered resource represents an externally "
+                            + "observable exposure signal that should be "
+                            + "reviewed by the security team.";
         };
     }
-}
 
+
+    private String safe(
+            String value
+    ) {
+
+        if (value == null) {
+
+            return "";
+        }
+
+        return value;
+    }
+}

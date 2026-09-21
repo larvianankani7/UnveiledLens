@@ -12,6 +12,7 @@ function AdminDashboard() {
     const [domain, setDomain] = useState('');
     const [report, setReport] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [pdfLoading, setPdfLoading] = useState(false);
     const [error, setError] = useState('');
 
     const token =
@@ -23,12 +24,17 @@ function AdminDashboard() {
         event.preventDefault();
 
         const targetDomain =
-            domain.trim()
+            domain
+                .trim()
                 .replace(/^https?:\/\//i, '')
                 .replace(/\/+$/, '');
 
         if (!targetDomain) {
-            setError('Enter a domain to scan.');
+
+            setError(
+                'Enter a domain to scan.'
+            );
+
             return;
         }
 
@@ -53,15 +59,16 @@ function AdminDashboard() {
                     }
                 );
 
-            if (response.status === 401 ||
-                response.status === 403) {
+            if (
+                response.status === 401 ||
+                response.status === 403
+            ) {
 
-                sessionStorage.removeItem('token');
-                localStorage.removeItem('token');
-                sessionStorage.removeItem('role');
-                localStorage.removeItem('role');
+                clearAuth();
 
-                navigate('/admin-verify');
+                navigate(
+                    '/admin-verify'
+                );
 
                 return;
             }
@@ -92,15 +99,121 @@ function AdminDashboard() {
         }
     };
 
-    const handleLogout = () => {
+    const handlePdfDownload = async () => {
+
+        if (!report?.domain) {
+            return;
+        }
+
+        setError('');
+        setPdfLoading(true);
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_BASE_URL}/api/admin/discovery/report/pdf`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            domain: report.domain
+                        })
+                    }
+                );
+
+            if (
+                response.status === 401 ||
+                response.status === 403
+            ) {
+
+                clearAuth();
+
+                navigate(
+                    '/admin-verify'
+                );
+
+                return;
+            }
+
+            if (!response.ok) {
+
+                let message =
+                    'Unable to generate PDF report.';
+
+                try {
+
+                    const data =
+                        await response.json();
+
+                    message =
+                        data.message ||
+                        message;
+
+                } catch {
+                    // Response was not JSON.
+                }
+
+                throw new Error(message);
+            }
+
+            const blob =
+                await response.blob();
+
+            const url =
+                window.URL.createObjectURL(blob);
+
+            const anchor =
+                document.createElement('a');
+
+            anchor.href = url;
+
+            anchor.download =
+                `unveiledlens-${report.domain}-report.pdf`;
+
+            document.body.appendChild(anchor);
+
+            anchor.click();
+
+            anchor.remove();
+
+            window.URL.revokeObjectURL(url);
+
+        } catch (pdfError) {
+
+            setError(
+                pdfError.message ||
+                'Unable to generate PDF report.'
+            );
+
+        } finally {
+
+            setPdfLoading(false);
+        }
+    };
+
+    const clearAuth = () => {
 
         sessionStorage.removeItem('token');
-        localStorage.removeItem('token');
-
         sessionStorage.removeItem('role');
-        localStorage.removeItem('role');
 
-        navigate('/');
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+    };
+
+    const handleLogout = () => {
+
+        clearAuth();
+
+        navigate(
+            '/',
+            {
+                replace: true
+            }
+        );
     };
 
     const summary =
@@ -115,6 +228,7 @@ function AdminDashboard() {
             <header className="admin-dashboard-header">
 
                 <div>
+
                     <div className="admin-brand">
                         UNVEILEDLENS
                     </div>
@@ -127,6 +241,7 @@ function AdminDashboard() {
                         Discover publicly exposed resources
                         across any target domain.
                     </p>
+
                 </div>
 
                 <div className="admin-header-actions">
@@ -185,7 +300,9 @@ function AdminDashboard() {
                                 type="text"
                                 value={domain}
                                 onChange={(event) =>
-                                    setDomain(event.target.value)
+                                    setDomain(
+                                        event.target.value
+                                    )
                                 }
                                 placeholder="example.com"
                                 autoComplete="off"
@@ -220,36 +337,21 @@ function AdminDashboard() {
 
 
                     {error && (
+
                         <div className="admin-error">
+
                             {error}
-                        </div>
-                    )}
-
-                    {loading && (
-                        <div className="admin-scan-status">
-
-                            <div className="admin-pulse" />
-
-                            <div>
-                                <strong>
-                                    Scanning {domain.trim()}
-                                </strong>
-
-                                <span>
-                                    Discovering indexed assets
-                                    and validating exposure signals...
-                                </span>
-                            </div>
 
                         </div>
+
                     )}
 
                 </section>
 
 
-                {report && !loading && (
+                {report && (
 
-                    <section className="admin-report">
+                    <section className="admin-results">
 
                         <div className="admin-report-header">
 
@@ -263,22 +365,28 @@ function AdminDashboard() {
                                     {report.domain}
                                 </h2>
 
-                            </div>
-
-                            <div className="admin-scan-time">
-
-                                Scanned
-                                <br />
-
-                                <strong>
-                                    {report.scannedAt
-                                        ? new Date(
-                                            report.scannedAt
-                                        ).toLocaleString()
-                                        : '—'}
-                                </strong>
+                                <p>
+                                    Scanned{' '}
+                                    {formatDate(
+                                        report.scannedAt
+                                    )}
+                                </p>
 
                             </div>
+
+
+                            <button
+                                type="button"
+                                className="admin-pdf-button"
+                                onClick={handlePdfDownload}
+                                disabled={pdfLoading}
+                            >
+
+                                {pdfLoading
+                                    ? 'Generating PDF...'
+                                    : 'Export PDF'}
+
+                            </button>
 
                         </div>
 
@@ -286,30 +394,9 @@ function AdminDashboard() {
                         <div className="admin-summary-grid">
 
                             <SummaryCard
-                                label="Discovered"
-                                value={
-                                    summary.totalDiscovered ?? 0
-                                }
-                            />
-
-                            <SummaryCard
-                                label="Relevant Assets"
-                                value={
-                                    summary.relevantAssets ?? 0
-                                }
-                            />
-
-                            <SummaryCard
-                                label="Findings"
+                                label="Total Findings"
                                 value={
                                     summary.totalFindings ?? 0
-                                }
-                            />
-
-                            <SummaryCard
-                                label="Reachable"
-                                value={
-                                    summary.reachableFindings ?? 0
                                 }
                             />
 
@@ -317,7 +404,7 @@ function AdminDashboard() {
                                 label="High Severity"
                                 value={
                                     summary.highSeverity ?? 0
-                                    }
+                                }
                                 severity="high"
                             />
 
@@ -424,11 +511,20 @@ function AdminDashboard() {
                                 <div className="admin-findings-list">
 
                                     {findings.map(
-                                        (finding, index) => (
+                                        (
+                                            finding,
+                                            index
+                                        ) => (
+
                                             <FindingCard
-                                                key={`${finding.url || 'finding'}-${index}`}
-                                                finding={finding}
+                                                key={
+                                                    `${finding.url || 'finding'}-${index}`
+                                                }
+                                                finding={
+                                                    finding
+                                                }
                                             />
+
                                         )
                                     )}
 
@@ -457,11 +553,13 @@ function SummaryCard({
 
     return (
         <div
-            className={`admin-summary-card ${
-                severity
-                    ? `severity-${severity}`
-                    : ''
-            }`}
+            className={
+                `admin-summary-card ${
+                    severity
+                        ? `severity-${severity}`
+                        : ''
+                }`
+            }
         >
 
             <span>
@@ -509,7 +607,9 @@ function FindingCard({
 
     return (
         <article
-            className={`admin-finding-card severity-border-${severity}`}
+            className={
+                `admin-finding-card severity-border-${severity}`
+            }
         >
 
             <div className="admin-finding-top">
@@ -522,11 +622,14 @@ function FindingCard({
                     </span>
 
                     <div className="finding-redacted-url">
+
                         <span>
-                            {finding.url || 'Redacted resource'}
+                            {finding.url ||
+                                'Redacted resource'}
                         </span>
 
                         <span className="url-redaction" />
+
                     </div>
 
                 </div>
@@ -535,7 +638,9 @@ function FindingCard({
                 <div className="admin-finding-badges">
 
                     <span
-                        className={`admin-severity severity-${severity}`}
+                        className={
+                            `admin-severity severity-${severity}`
+                        }
                     >
                         {finding.severity || 'LOW'}
                     </span>
@@ -591,10 +696,48 @@ function FindingCard({
                     </strong>
                 </span>
 
+                <span>
+                    Authentication:
+                    <strong>
+                        {finding.authRequired
+                            ? 'REQUIRED'
+                            : 'NOT CONFIRMED'}
+                    </strong>
+                </span>
+
             </div>
 
 
+            {finding.riskLevel && (
+
+                <div className="admin-finding-risk">
+
+                    <span>
+                        RISK LEVEL
+                    </span>
+
+                    <strong>
+                        {finding.riskLevel}
+                    </strong>
+
+                </div>
+
+            )}
+
+
+            {finding.corsWildcard && (
+
+                <div className="admin-unconfirmed">
+
+                    WILDCARD CORS DETECTED
+
+                </div>
+
+            )}
+
+
             {finding.reason && (
+
                 <div className="admin-finding-reason">
 
                     <span>
@@ -606,6 +749,7 @@ function FindingCard({
                     </p>
 
                 </div>
+
             )}
 
 
@@ -620,10 +764,15 @@ function FindingCard({
                     <ul>
 
                         {finding.evidence.map(
-                            (item, index) => (
+                            (
+                                item,
+                                index
+                            ) => (
+
                                 <li key={index}>
                                     {item}
                                 </li>
+
                             )
                         )}
 
@@ -633,8 +782,120 @@ function FindingCard({
 
             )}
 
+
+            {finding.attackChainSignals?.length > 0 && (
+
+                <div className="admin-evidence">
+
+                    <span>
+                        POTENTIAL ATTACK CHAINS
+                    </span>
+
+                    <ul>
+
+                        {finding.attackChainSignals.map(
+                            (
+                                item,
+                                index
+                            ) => (
+
+                                <li key={index}>
+                                    {formatSignal(item)}
+                                </li>
+
+                            )
+                        )}
+
+                    </ul>
+
+                </div>
+
+            )}
+
+
+            {finding.compliance?.length > 0 && (
+
+                <div className="admin-evidence">
+
+                    <span>
+                        DPDP RELEVANCE
+                    </span>
+
+                    <ul>
+
+                        {finding.compliance.map(
+                            (
+                                item,
+                                index
+                            ) => (
+
+                                <li key={index}>
+                                    {item}
+                                </li>
+
+                            )
+                        )}
+
+                    </ul>
+
+                </div>
+
+            )}
+
+
+            {finding.remediation && (
+
+                <div className="admin-finding-reason">
+
+                    <span>
+                        RECOMMENDED REMEDIATION
+                    </span>
+
+                    <p>
+                        {finding.remediation}
+                    </p>
+
+                </div>
+
+            )}
+
         </article>
     );
+}
+
+
+function formatSignal(
+    value
+) {
+
+    return String(value)
+        .replaceAll('_', ' ')
+        .toLowerCase()
+        .replace(
+            /\b\w/g,
+            character =>
+                character.toUpperCase()
+        );
+}
+
+
+function formatDate(
+    value
+) {
+
+    if (!value) {
+        return 'unknown date';
+    }
+
+    try {
+
+        return new Date(value)
+            .toLocaleString();
+
+    } catch {
+
+        return value;
+    }
 }
 
 
