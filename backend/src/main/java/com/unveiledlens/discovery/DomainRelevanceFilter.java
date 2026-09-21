@@ -1,10 +1,8 @@
-
 package com.unveiledlens.discovery;
 
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Locale;
 
 @Service
@@ -16,15 +14,12 @@ public class DomainRelevanceFilter {
     ) {
 
         if (url == null
-                || targetDomain == null
                 || url.isBlank()
+                || targetDomain == null
                 || targetDomain.isBlank()) {
 
             return false;
         }
-
-        String normalizedDomain =
-                normalizeDomain(targetDomain);
 
         try {
 
@@ -34,50 +29,40 @@ public class DomainRelevanceFilter {
             String host =
                     uri.getHost();
 
-            if (host == null || host.isBlank()) {
+            if (host == null) {
                 return false;
             }
 
-            String normalizedHost =
+            host =
                     host.toLowerCase(Locale.ROOT);
 
-            return normalizedHost.equals(
-                    normalizedDomain
-            )
-                    || normalizedHost.endsWith(
-                    "." + normalizedDomain
-            );
+            String domain =
+                    targetDomain
+                            .trim()
+                            .toLowerCase(Locale.ROOT)
+                            .replaceFirst(
+                                    "^https?://",
+                                    ""
+                            )
+                            .split("/")[0]
+                            .split(":")[0];
 
-        } catch (URISyntaxException e) {
+            if (domain.startsWith("www.")) {
+                domain =
+                        domain.substring(4);
+            }
+
+            if (host.startsWith("www.")) {
+                host =
+                        host.substring(4);
+            }
+
+            return host.equals(domain)
+                    || host.endsWith("." + domain);
+
+        } catch (Exception e) {
 
             return false;
         }
     }
-
-    private String normalizeDomain(String domain) {
-
-        String normalized =
-                domain.trim()
-                        .toLowerCase(Locale.ROOT);
-
-        normalized =
-                normalized.replaceFirst(
-                        "^https?://",
-                        ""
-                );
-
-        normalized =
-                normalized.split("/")[0];
-
-        normalized =
-                normalized.split(":")[0];
-
-        if (normalized.startsWith("www.")) {
-            normalized =
-                    normalized.substring(4);
-        }
-
-        return normalized;
-    }
 }
-

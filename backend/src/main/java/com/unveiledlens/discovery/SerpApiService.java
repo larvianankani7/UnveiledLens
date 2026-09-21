@@ -1,4 +1,3 @@
-
 package com.unveiledlens.discovery;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -20,18 +19,27 @@ public class SerpApiService {
     @Value("${serpapi.key:}")
     private String apiKey;
 
-    private final RestTemplate restTemplate = new RestTemplate();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final RestTemplate restTemplate =
+            new RestTemplate();
 
-    public List<SerpApiResult> search(String query) {
+    private final ObjectMapper objectMapper =
+            new ObjectMapper();
 
-        List<SerpApiResult> results = new ArrayList<>();
+    public List<SerpApiResult> search(
+            String query
+    ) {
+
+        List<SerpApiResult> results =
+                new ArrayList<>();
 
         if (apiKey == null
                 || apiKey.isBlank()
                 || apiKey.equals("<already configured>")) {
 
-            log.warn("SerpApi key is missing or not configured correctly.");
+            log.warn(
+                    "SerpApi key is missing."
+            );
+
             return results;
         }
 
@@ -39,11 +47,25 @@ public class SerpApiService {
 
             String url =
                     UriComponentsBuilder
-                            .fromHttpUrl("https://serpapi.com/search.json")
-                            .queryParam("engine", "google")
-                            .queryParam("q", query)
-                            .queryParam("api_key", apiKey)
-                            .queryParam("num", 10)
+                            .fromHttpUrl(
+                                    "https://serpapi.com/search.json"
+                            )
+                            .queryParam(
+                                    "engine",
+                                    "google"
+                            )
+                            .queryParam(
+                                    "q",
+                                    query
+                            )
+                            .queryParam(
+                                    "api_key",
+                                    apiKey
+                            )
+                            .queryParam(
+                                    "num",
+                                    10
+                            )
                             .build()
                             .toUriString();
 
@@ -53,24 +75,66 @@ public class SerpApiService {
                             String.class
                     );
 
-            if (response == null || response.isBlank()) {
+            if (response == null
+                    || response.isBlank()) {
+
+                log.warn(
+                        "SerpApi returned an empty response for query: {}",
+                        query
+                );
+
                 return results;
             }
 
             JsonNode root =
-                    objectMapper.readTree(response);
+                    objectMapper.readTree(
+                            response
+                    );
+
+            String searchStatus =
+                    root.path("search_metadata")
+                            .path("status")
+                            .asText("");
+
+            String error =
+                    root.path("error")
+                            .asText("");
 
             JsonNode organicResults =
-                    root.path("organic_results");
+                    root.path(
+                            "organic_results"
+                    );
+
+            int count =
+                    organicResults.isArray()
+                            ? organicResults.size()
+                            : 0;
+
+            log.info(
+                    "SerpApi: status={}, organicResults={}, query={}",
+                    searchStatus,
+                    count,
+                    query
+            );
+
+            if (!error.isBlank()) {
+
+                log.warn(
+                        "SerpApi error: {}",
+                        error
+                );
+            }
 
             if (!organicResults.isArray()) {
                 return results;
             }
 
-            for (JsonNode node : organicResults) {
+            for (JsonNode node :
+                    organicResults) {
 
                 String link =
-                        node.path("link").asText("");
+                        node.path("link")
+                                .asText("");
 
                 if (link.isBlank()) {
                     continue;
@@ -99,7 +163,8 @@ public class SerpApiService {
             );
 
             throw new RuntimeException(
-                    "SerpApi failure: " + e.getMessage(),
+                    "SerpApi failure: "
+                            + e.getMessage(),
                     e
             );
         }
@@ -107,4 +172,3 @@ public class SerpApiService {
         return results;
     }
 }
-

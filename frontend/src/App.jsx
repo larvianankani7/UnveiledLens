@@ -11,7 +11,7 @@ import Register from './pages/Auth/Register.jsx';
 import AdminRequest from './pages/Auth/AdminRequest.jsx';
 import AdminVerify from './pages/Auth/AdminVerify.jsx';
 import AdminApproval from './pages/Auth/AdminApproval.jsx';
-
+import AdminDashboard from './pages/Admin/AdminDashboard.jsx';
 import SearchResults from './pages/SearchResults/SearchResults.jsx';
 import Settings from './pages/Settings/Settings.jsx';
 
@@ -65,6 +65,10 @@ function App() {
         <Route
           path="/settings"
           element={<Settings />}
+        />
+        <Route
+          path="/admin"
+          element={<AdminDashboard />}
         />
 
       </Route>

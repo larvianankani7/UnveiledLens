@@ -41,33 +41,20 @@ public class AdminAccessService {
     @Transactional
     public void requestAdminAccess(String email) {
 
-        String normalizedEmail =
-                normalizeEmail(email);
+        String normalizedEmail = normalizeEmail(email);
 
         if (normalizedEmail.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Email is required."
-            );
+            throw new IllegalArgumentException("Email is required.");
         }
 
-        String rawToken =
-                generateSecureToken(32);
+        String rawToken = generateSecureToken(32);
 
-        AdminAccessRequest request =
-                new AdminAccessRequest();
+        AdminAccessRequest request = new AdminAccessRequest();
 
         request.setEmail(normalizedEmail);
-
-        request.setRequestTokenHash(
-                hash(rawToken)
-        );
-
+        request.setRequestTokenHash(hash(rawToken));
         request.setStatus("PENDING");
-
-        request.setCreatedAt(
-                LocalDateTime.now()
-        );
-
+        request.setCreatedAt(LocalDateTime.now());
         request.setExpiresAt(
                 LocalDateTime.now()
                         .plusHours(REQUEST_EXPIRATION_HOURS)
@@ -133,16 +120,12 @@ public class AdminAccessService {
                         : decision.trim().toUpperCase();
 
         if ("APPROVE".equals(normalizedDecision)) {
-
             approve(request);
-
             return;
         }
 
         if ("REJECT".equals(normalizedDecision)) {
-
             reject(request);
-
             return;
         }
 
@@ -157,8 +140,7 @@ public class AdminAccessService {
             String adminId
     ) {
 
-        String normalizedEmail =
-                normalizeEmail(email);
+        String normalizedEmail = normalizeEmail(email);
 
         AdminAccessRequest request =
                 findLatestApprovedRequest(normalizedEmail);
@@ -186,15 +168,12 @@ public class AdminAccessService {
             String otp
     ) {
 
-        String normalizedEmail =
-                normalizeEmail(email);
+        String normalizedEmail = normalizeEmail(email);
 
         AdminAccessRequest request =
                 findLatestApprovedRequest(normalizedEmail);
 
-        validateApprovedRequest(
-                request
-        );
+        validateApprovedRequest(request);
 
         if (!otpService.verifyOtp(
                 normalizedEmail,
@@ -211,8 +190,7 @@ public class AdminAccessService {
                         .findByEmail(normalizedEmail)
                         .orElseGet(() -> {
 
-                            User newUser =
-                                    new User();
+                            User newUser = new User();
 
                             newUser.setEmail(
                                     normalizedEmail
@@ -227,17 +205,14 @@ public class AdminAccessService {
                             return newUser;
                         });
 
-        user.setRole(
-                Role.ROLE_ADMIN
-        );
+        user.setRole(Role.ROLE_ADMIN);
 
         userRepository.save(user);
 
         UserDetails userDetails =
-                userDetailsService
-                        .loadUserByUsername(
-                                normalizedEmail
-                        );
+                userDetailsService.loadUserByUsername(
+                        normalizedEmail
+                );
 
         String jwt =
                 jwtService.generateAdminToken(
@@ -270,9 +245,7 @@ public class AdminAccessService {
                 hash(adminId)
         );
 
-        request.setStatus(
-                "APPROVED"
-        );
+        request.setStatus("APPROVED");
 
         request.setApprovedAt(
                 LocalDateTime.now()
@@ -301,9 +274,7 @@ public class AdminAccessService {
             AdminAccessRequest request
     ) {
 
-        request.setStatus(
-                "REJECTED"
-        );
+        request.setStatus("REJECTED");
 
         request.setRejectedAt(
                 LocalDateTime.now()
@@ -355,15 +326,6 @@ public class AdminAccessService {
                     "Invalid admin authorization."
             );
         }
-
-        if (request.getAdminIdExpiresAt() == null
-                || request.getAdminIdExpiresAt()
-                .isBefore(LocalDateTime.now())) {
-
-            throw new IllegalArgumentException(
-                    "Admin Authorization ID has expired."
-            );
-        }
     }
 
     private void validateApprovedRequest(
@@ -372,10 +334,7 @@ public class AdminAccessService {
 
         expireRequestIfNecessary(request);
 
-        if (!"APPROVED".equals(
-                request.getStatus()
-        )) {
-
+        if (!"APPROVED".equals(request.getStatus())) {
             throw new IllegalArgumentException(
                     "Admin authorization is not active."
             );
@@ -395,18 +354,16 @@ public class AdminAccessService {
             String email
     ) {
 
-        AdminAccessRequest request =
-                repository
-                        .findTopByEmailOrderByCreatedAtDesc(
-                                email
+        return repository
+                .findTopByEmailAndStatusOrderByCreatedAtDesc(
+                        email,
+                        "APPROVED"
+                )
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Invalid admin authorization."
                         )
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "Invalid admin authorization."
-                                )
-                        );
-
-        return request;
+                );
     }
 
     private AdminAccessRequest findRequestByToken(
@@ -419,11 +376,8 @@ public class AdminAccessService {
             );
         }
 
-        String tokenHash =
-                hash(token);
-
         return repository
-                .findByRequestTokenHash(tokenHash)
+                .findByRequestTokenHash(hash(token))
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "Invalid approval token."
@@ -435,16 +389,12 @@ public class AdminAccessService {
             AdminAccessRequest request
     ) {
 
-        if ("PENDING".equals(
-                request.getStatus()
-        )
+        if ("PENDING".equals(request.getStatus())
                 && request.getExpiresAt() != null
                 && request.getExpiresAt()
                 .isBefore(LocalDateTime.now())) {
 
-            request.setStatus(
-                    "EXPIRED"
-            );
+            request.setStatus("EXPIRED");
 
             repository.save(request);
 
@@ -479,8 +429,7 @@ public class AdminAccessService {
             int byteLength
     ) {
 
-        byte[] bytes =
-                new byte[byteLength];
+        byte[] bytes = new byte[byteLength];
 
         secureRandom.nextBytes(bytes);
 
@@ -496,9 +445,7 @@ public class AdminAccessService {
         try {
 
             MessageDigest digest =
-                    MessageDigest.getInstance(
-                            "SHA-256"
-                    );
+                    MessageDigest.getInstance("SHA-256");
 
             byte[] hashed =
                     digest.digest(
@@ -511,6 +458,7 @@ public class AdminAccessService {
                     new StringBuilder();
 
             for (byte b : hashed) {
+
                 builder.append(
                         String.format(
                                 "%02x",

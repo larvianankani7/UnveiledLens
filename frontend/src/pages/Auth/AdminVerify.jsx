@@ -9,9 +9,11 @@ import {
 } from 'lucide-react';
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+  import.meta.env.VITE_API_BASE_URL ||
+  'http://localhost:8080';
 
 export default function AdminVerify() {
+
   const [step, setStep] = useState(1);
 
   const [email, setEmail] = useState('');
@@ -23,7 +25,10 @@ export default function AdminVerify() {
 
   const navigate = useNavigate();
 
-  const verifyAuthorization = async (event) => {
+  const verifyAuthorization = async (
+    event
+  ) => {
+
     event.preventDefault();
 
     setError('');
@@ -31,27 +36,35 @@ export default function AdminVerify() {
 
     try {
 
-      const response = await fetch(
-        `${API_BASE_URL}/api/admin-access/verify-id`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: email.trim().toLowerCase(),
-            adminId: adminId.trim()
-          })
-        }
-      );
+      const response =
+          await fetch(
+              `${API_BASE_URL}/api/admin-access/verify-id`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type':
+                      'application/json'
+                },
+                body: JSON.stringify({
+                  email:
+                      email.trim().toLowerCase(),
+                  adminId:
+                      adminId.trim()
+                })
+              }
+          );
 
-      const data = await response.json().catch(() => null);
+      const data =
+          await response
+              .json()
+              .catch(() => null);
 
       if (!response.ok) {
+
         throw new Error(
-          data?.message ||
-          data?.error ||
-          'Invalid or expired Admin Authorization ID.'
+            data?.message ||
+            data?.error ||
+            'Invalid or expired Admin Authorization ID.'
         );
       }
 
@@ -60,9 +73,9 @@ export default function AdminVerify() {
     } catch (err) {
 
       setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to verify authorization.'
+          err instanceof Error
+              ? err.message
+              : 'Unable to verify authorization.'
       );
 
     } finally {
@@ -71,11 +84,18 @@ export default function AdminVerify() {
     }
   };
 
-  const verifyOtp = async (event) => {
+  const verifyOtp = async (
+    event
+  ) => {
+
     event.preventDefault();
 
     if (otp.length !== 6) {
-      setError('Enter the 6-digit verification code.');
+
+      setError(
+          'Enter the 6-digit verification code.'
+      );
+
       return;
     }
 
@@ -84,52 +104,69 @@ export default function AdminVerify() {
 
     try {
 
-      const response = await fetch(
-        `${API_BASE_URL}/api/admin-access/verify-otp`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: email.trim().toLowerCase(),
-            otp
-          })
-        }
-      );
+      const response =
+          await fetch(
+              `${API_BASE_URL}/api/admin-access/verify-otp`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type':
+                      'application/json'
+                },
+                body: JSON.stringify({
+                  email:
+                      email.trim().toLowerCase(),
+                  otp
+                })
+              }
+          );
 
-      const data = await response.json().catch(() => null);
+      const data =
+          await response
+              .json()
+              .catch(() => null);
 
       if (!response.ok) {
+
         throw new Error(
-          data?.message ||
-          data?.error ||
-          'Invalid or expired OTP.'
+            data?.message ||
+            data?.error ||
+            'Invalid or expired OTP.'
         );
       }
 
-      localStorage.setItem(
-        'token',
-        data.token
+      sessionStorage.setItem(
+          'token',
+          data.token
       );
 
-      localStorage.setItem(
-        'role',
-        'ROLE_ADMIN'
+      sessionStorage.setItem(
+          'role',
+          'ROLE_ADMIN'
+      );
+
+      localStorage.removeItem(
+          'token'
+      );
+
+      localStorage.removeItem(
+          'role'
       );
 
       setStep(3);
 
       setTimeout(() => {
-        navigate('/search');
-      }, 1000);
+
+        navigate('/admin');
+
+      }, 700);
 
     } catch (err) {
 
       setError(
-        err instanceof Error
-          ? err.message
-          : 'Invalid or expired OTP.'
+          err instanceof Error
+              ? err.message
+              : 'Invalid or expired OTP.'
       );
 
     } finally {
@@ -139,6 +176,7 @@ export default function AdminVerify() {
   };
 
   if (step === 3) {
+
     return (
       <div className="text-center py-8">
 
@@ -151,7 +189,7 @@ export default function AdminVerify() {
         </h2>
 
         <p className="text-sm text-gray-400 mt-2">
-          Redirecting...
+          Opening admin panel...
         </p>
 
       </div>
@@ -173,8 +211,8 @@ export default function AdminVerify() {
 
         <p className="text-sm text-gray-400 mt-2">
           {step === 1
-            ? 'Enter your Admin Authorization ID.'
-            : 'Enter the verification code sent to your email.'}
+              ? 'Enter your Admin Authorization ID.'
+              : 'Enter the verification code sent to your email.'}
         </p>
 
       </div>
@@ -203,7 +241,7 @@ export default function AdminVerify() {
                 required
                 value={email}
                 onChange={(event) =>
-                  setEmail(event.target.value)
+                    setEmail(event.target.value)
                 }
                 className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white focus:outline-none focus:ring-1 focus:ring-accent-amber"
                 placeholder="admin@yourdomain.com"
@@ -230,7 +268,7 @@ export default function AdminVerify() {
                 required
                 value={adminId}
                 onChange={(event) =>
-                  setAdminId(event.target.value)
+                    setAdminId(event.target.value)
                 }
                 className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white focus:outline-none focus:ring-1 focus:ring-accent-amber"
                 placeholder="Enter your authorization ID"
@@ -257,8 +295,8 @@ export default function AdminVerify() {
             )}
 
             {loading
-              ? 'Verifying...'
-              : 'Verify Authorization'}
+                ? 'Verifying...'
+                : 'Verify Authorization'}
 
           </button>
 
@@ -294,11 +332,11 @@ export default function AdminVerify() {
             required
             value={otp}
             onChange={(event) =>
-              setOtp(
-                event.target.value
-                  .replace(/\D/g, '')
-                  .slice(0, 6)
-              )
+                setOtp(
+                    event.target.value
+                        .replace(/\D/g, '')
+                        .slice(0, 6)
+                )
             }
             className="block w-full text-center tracking-[0.5em] text-2xl bg-charcoal-lighter border border-glass-border rounded-md py-3 text-white focus:outline-none focus:ring-1 focus:ring-accent-amber"
             placeholder="000000"
@@ -322,8 +360,8 @@ export default function AdminVerify() {
             )}
 
             {loading
-              ? 'Verifying...'
-              : 'Verify OTP'}
+                ? 'Verifying...'
+                : 'Verify OTP'}
 
           </button>
 
