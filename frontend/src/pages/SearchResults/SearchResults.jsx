@@ -214,7 +214,7 @@ switch (report.exposureLevel) {
 
 };
 
-return ( <div className="flex-1 bg-charcoal px-5 py-8 lg:px-10 lg:py-10">
+return ( <div className="search-results-page flex-1 bg-charcoal px-5 py-8 lg:px-10 lg:py-10">
 
 
   <div className="max-w-6xl mx-auto">
