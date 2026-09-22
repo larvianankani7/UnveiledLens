@@ -6,6 +6,7 @@ import com.unveiledlens.admin.dto.AdminScanSummary;
 import com.unveiledlens.discovery.DiscoveryService;
 import com.unveiledlens.discovery.dto.ExposureFinding;
 import com.unveiledlens.discovery.dto.ExposureReport;
+import com.unveiledlens.report.PdfReportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ public class AdminDiscoveryController {
 
     private final DiscoveryService discoveryService;
     private final AdminRedactionService redactionService;
+    private final PdfReportService pdfReportService;
 
     @PostMapping("/scan")
     public ResponseEntity<?> scan(
@@ -56,6 +58,26 @@ public class AdminDiscoveryController {
         return ResponseEntity.ok(
                 adminReport
         );
+    }
+
+    @PostMapping("/report/pdf")
+    public ResponseEntity<byte[]> generatePdf(
+            @Valid @RequestBody AdminScanRequest request
+    ) {
+        String domain = normalizeDomain(request.getDomain());
+        if (!isValidDomain(domain)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        ExposureReport report = discoveryService.runAdminDiscovery(domain);
+        AdminExposureReport adminReport = toAdminReport(report);
+        byte[] pdf = pdfReportService.generateReport(adminReport);
+
+        return ResponseEntity
+                .ok()
+                .header("Content-Disposition", "attachment; filename=\"unveiledlens-report.pdf\"")
+                .header("Content-Type", "application/pdf")
+                .body(pdf);
     }
 
     private AdminExposureReport toAdminReport(

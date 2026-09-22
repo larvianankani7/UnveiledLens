@@ -47,49 +47,49 @@ private static final Pattern SECRET_PARAMETER =
         Pattern.compile(
                 "(?i)(token|apikey|api_key|key|secret|password|passwd|authorization)=([^&\\s]+)"
         );
-            public String redactText(
-        String value
-) {
+    private static final Pattern UUID_PATTERN =
+            Pattern.compile(
+                    "(?i)\\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\b"
+            );
 
-    if (value == null || value.isBlank()) {
-        return value;
+    private static final Pattern HEX_HASH_PATTERN =
+            Pattern.compile(
+                    "\\b[0-9a-fA-F]{32,64}\\b"
+            );
+
+    private static final Pattern SENSITIVE_PATH_SEGMENT =
+            Pattern.compile(
+                    "(?i)(/(?:users?|accounts?|customers?|clients?|members?|profiles?|keys?|tokens?|secrets?|credentials?)/)(?:[a-zA-Z0-9_-]{5,}|\\d+)"
+            );
+
+    public String redactText(
+            String value
+    ) {
+
+        if (value == null || value.isBlank()) {
+            return value;
+        }
+
+        String redacted = value;
+
+        redacted = EMAIL.matcher(redacted)
+                .replaceAll("[EMAIL_REDACTED]");
+
+        redacted = JWT.matcher(redacted)
+                .replaceAll("[JWT_REDACTED]");
+
+        redacted = AWS_ACCESS_KEY.matcher(redacted)
+                .replaceAll("[AWS_KEY_REDACTED]");
+
+        redacted = IPV4.matcher(redacted)
+                .replaceAll("[IP_REDACTED]");
+
+        redacted = SECRET_PARAMETER.matcher(redacted)
+                .replaceAll("$1=[REDACTED]");
+
+        return redacted;
     }
 
-    String redacted =
-            value;
-
-    redacted =
-            EMAIL.matcher(redacted)
-                    .replaceAll(
-                            "[EMAIL_REDACTED]"
-                    );
-
-    redacted =
-            JWT.matcher(redacted)
-                    .replaceAll(
-                            "[JWT_REDACTED]"
-                    );
-
-    redacted =
-            AWS_ACCESS_KEY.matcher(redacted)
-                    .replaceAll(
-                            "[AWS_KEY_REDACTED]"
-                    );
-
-    redacted =
-            IPV4.matcher(redacted)
-                    .replaceAll(
-                            "[IP_REDACTED]"
-                    );
-
-    redacted =
-            SECRET_PARAMETER.matcher(redacted)
-                    .replaceAll(
-                            "$1=[REDACTED]"
-                    );
-
-    return redacted;
-}
     public String redact(
             String value
     ) {
@@ -100,38 +100,31 @@ private static final Pattern SECRET_PARAMETER =
             return value;
         }
 
-        String result =
-                value;
+        String result = value;
 
-        result =
-                EMAIL.matcher(result)
-                        .replaceAll(
-                                "[REDACTED_EMAIL]"
-                        );
+        result = EMAIL.matcher(result)
+                .replaceAll("[REDACTED_EMAIL]");
 
-        result =
-                JWT.matcher(result)
-                        .replaceAll(
-                                "[REDACTED_TOKEN]"
-                        );
+        result = JWT.matcher(result)
+                .replaceAll("[REDACTED_TOKEN]");
 
-        result =
-                AWS_KEY.matcher(result)
-                        .replaceAll(
-                                "[REDACTED_AWS_KEY]"
-                        );
+        result = AWS_KEY.matcher(result)
+                .replaceAll("[REDACTED_AWS_KEY]");
 
-        result =
-                SECRET_QUERY.matcher(result)
-                        .replaceAll(
-                                "$1[REDACTED]"
-                        );
+        result = SECRET_QUERY.matcher(result)
+                .replaceAll("$1[REDACTED]");
 
-        result =
-                IP.matcher(result)
-                        .replaceAll(
-                                "[REDACTED_IP]"
-                        );
+        result = SECRET_PARAMETER.matcher(result)
+                .replaceAll("$1=[REDACTED]");
+
+        result = IP.matcher(result)
+                .replaceAll("[REDACTED_IP]");
+
+        result = UUID_PATTERN.matcher(result)
+                .replaceAll("[REDACTED_ID]");
+
+        result = HEX_HASH_PATTERN.matcher(result)
+                .replaceAll("[REDACTED_TOKEN]");
 
         return result;
     }
@@ -153,27 +146,33 @@ private static final Pattern SECRET_PARAMETER =
 
     public String redactUrl(String url) {
 
-    if (url == null || url.isBlank()) {
-        return "[REDACTED_URL]";
-    }
-
-    try {
-
-        java.net.URI uri =
-                new java.net.URI(url);
-
-        String host =
-                uri.getHost();
-
-        if (host == null || host.isBlank()) {
+        if (url == null || url.isBlank()) {
             return "[REDACTED_URL]";
         }
 
-        return host;
+        try {
+            String result = url.trim();
 
-    } catch (Exception e) {
+            result = EMAIL.matcher(result).replaceAll("[REDACTED_EMAIL]");
+            result = JWT.matcher(result).replaceAll("[REDACTED_TOKEN]");
+            result = AWS_KEY.matcher(result).replaceAll("[REDACTED_AWS_KEY]");
+            result = IP.matcher(result).replaceAll("[REDACTED_IP]");
+            result = UUID_PATTERN.matcher(result).replaceAll("[REDACTED_ID]");
+            result = HEX_HASH_PATTERN.matcher(result).replaceAll("[REDACTED_TOKEN]");
 
-        return "[REDACTED_URL]";
+            // Redact sensitive path parameters such as /users/12345 or /users/admin_user -> /users/***REDACTED***
+            result = SENSITIVE_PATH_SEGMENT.matcher(result).replaceAll("$1***REDACTED***");
+
+            // Redact known secret parameters
+            result = SECRET_PARAMETER.matcher(result).replaceAll("$1=[REDACTED]");
+            result = SECRET_QUERY.matcher(result).replaceAll("$1[REDACTED]");
+
+            // Redact any remaining query parameter values to ensure zero query secrets leak
+            result = result.replaceAll("(?i)([?&][a-zA-Z0-9_.-]+=)[^&#\\s]+", "$1[REDACTED]");
+
+            return result;
+        } catch (Exception e) {
+            return "[REDACTED_URL]";
+        }
     }
-}
 }

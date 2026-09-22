@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Loader2, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowLeft, KeyRound } from 'lucide-react';
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
@@ -116,82 +116,68 @@ export default function Login() {
   };
 
   return (
-    <div className="relative">
+    <div className="relative page-enter">
       <Link 
         to="/" 
-        className="absolute -top-12 left-0 p-2 text-gray-400 hover:text-white transition-colors"
+        className="inline-flex items-center gap-1.5 text-xs font-mono text-gray-500 hover:text-white transition-colors mb-6 group"
         title="Back to Home"
-        aria-label="Back to Home"
       >
-        <ArrowLeft className="h-5 w-5" />
+        <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" />
+        <span>Return to Platform Home</span>
       </Link>
 
-      <h2 className="text-2xl font-bold text-white mb-6 text-center">
-        Welcome Back
-      </h2>
+      <div className="text-center mb-6">
+        <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-amber block mb-1">
+          AUTHENTICATION GATEWAY
+        </span>
+        <h2 className="text-xl font-bold text-white tracking-tight">
+          {step === 1 ? 'Sign in to UnveiledLens' : 'Two-Factor Challenge'}
+        </h2>
+        <p className="text-xs text-gray-400 mt-1">
+          {step === 1
+            ? 'Access external security exposure intelligence.'
+            : `Enter the 6-digit verification code sent to ${identifier}`}
+        </p>
+      </div>
 
       {step === 1 && (
-        <form
-          onSubmit={handleLogin}
-          className="space-y-6"
-        >
-
+        <form onSubmit={handleLogin} className="space-y-4">
           <div>
-
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              Email Address
+            <label className="block text-xs font-mono uppercase tracking-wider text-gray-400 mb-1.5">
+              Account Email
             </label>
-
             <div className="relative">
-
-              <Mail
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500"
-              />
-
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
               <input
                 type="email"
                 required
                 value={identifier}
-                onChange={(event) =>
-                  setIdentifier(event.target.value)
-                }
-                className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-amber focus:border-accent-amber sm:text-sm"
-                placeholder="you@domain.com"
+                onChange={(e) => setIdentifier(e.target.value)}
+                className="input-technical w-full pl-9 pr-3 py-2.5 text-xs font-mono"
+                placeholder="analyst@domain.com"
               />
-
             </div>
-
           </div>
 
           <div>
-
-            <label className="block text-sm font-medium text-gray-300 mb-1">
+            <label className="block text-xs font-mono uppercase tracking-wider text-gray-400 mb-1.5">
               Password
             </label>
-
             <div className="relative">
-
-              <Lock
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500"
-              />
-
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
               <input
                 type="password"
                 required
                 value={password}
-                onChange={(event) =>
-                  setPassword(event.target.value)
-                }
-                className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-amber focus:border-accent-amber sm:text-sm"
-                placeholder="••••••••"
+                onChange={(e) => setPassword(e.target.value)}
+                className="input-technical w-full pl-9 pr-3 py-2.5 text-xs font-mono"
+                placeholder="••••••••••••"
               />
-
             </div>
-
           </div>
 
           {error && (
-            <div className="rounded-md border border-red-900/60 bg-red-950/30 px-4 py-3 text-sm text-red-300">
+            <div className="rounded-lg border border-red-900/60 bg-red-950/30 px-3.5 py-2.5 text-xs text-red-300">
               {error}
             </div>
           )}
@@ -199,47 +185,46 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center items-center gap-2 py-2 px-4 rounded-md text-sm font-medium text-white bg-accent-burnt hover:bg-accent-dark disabled:opacity-60 transition-colors glow-amber"
+            className="btn-primary w-full text-xs uppercase tracking-wider font-semibold py-2.5 mt-2"
           >
-
-            {loading && (
-              <Loader2 className="h-4 w-4 animate-spin" />
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <span>Authenticating...</span>
+              </span>
+            ) : (
+              'Sign In'
             )}
-
-            {loading
-              ? 'Signing in...'
-              : 'Sign In'}
-
           </button>
-
         </form>
       )}
 
       {step === 2 && (
-        <form
-          onSubmit={handleVerifyOtp}
-          className="space-y-6 text-center"
-        >
-          <Mail className="h-12 w-12 text-accent-amber mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-white">Verify your login</h3>
-          <p className="text-sm text-gray-400 mt-2">
-            A verification code was sent to {identifier}
-          </p>
+        <form onSubmit={handleVerifyOtp} className="space-y-5 text-center">
+          <div className="h-10 w-10 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mx-auto text-accent-amber">
+            <KeyRound className="h-5 w-5" />
+          </div>
 
-          <input
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]{6}"
-            required
-            value={otp}
-            onChange={(event) => setOtp(event.target.value.replace(/\D/g, '').slice(0, 6))}
-            className="block w-full text-center tracking-[0.5em] text-2xl bg-charcoal-lighter border border-glass-border rounded-md py-3 text-white focus:outline-none focus:ring-1 focus:ring-accent-amber"
-            placeholder="000000"
-            maxLength={6}
-          />
+          <div>
+            <label className="block text-xs font-mono uppercase tracking-wider text-gray-400 mb-2">
+              One-Time Passcode
+            </label>
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]{6}"
+              required
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              className="input-technical w-full text-center tracking-[0.5em] text-xl py-2.5 font-mono"
+              placeholder="000000"
+              maxLength={6}
+              autoFocus
+            />
+          </div>
 
           {error && (
-            <div className="rounded-md border border-red-900/60 bg-red-950/30 px-4 py-3 text-sm text-red-300">
+            <div className="rounded-lg border border-red-900/60 bg-red-950/30 px-3.5 py-2.5 text-xs text-red-300">
               {error}
             </div>
           )}
@@ -247,57 +232,39 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center items-center gap-2 py-2 px-4 rounded-md text-sm font-medium text-white bg-accent-burnt hover:bg-accent-dark disabled:opacity-60 transition-colors glow-amber"
+            className="btn-primary w-full text-xs uppercase tracking-wider font-semibold py-2.5"
           >
-            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            {loading ? 'Verifying...' : 'Verify OTP'}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <span>Verifying Code...</span>
+              </span>
+            ) : (
+              'Confirm Passcode'
+            )}
           </button>
         </form>
       )}
 
-      <div className="mt-6 text-center space-y-3">
-
-        <p className="text-sm text-gray-400">
-
-          Don't have an account?{' '}
-
-          <Link
-            to="/register"
-            className="font-medium text-accent-amber hover:text-accent-burnt"
-          >
-            Register as User
+      <div className="mt-8 pt-5 border-t border-[var(--border-subtle)] text-center space-y-2.5 text-xs font-mono">
+        <p className="text-gray-400">
+          Need an account?{' '}
+          <Link to="/register" className="text-accent-amber hover:underline font-medium">
+            Register Domain Scope
           </Link>
-
         </p>
 
-        <p className="text-sm text-gray-400">
-
-          Need admin access?{' '}
-
-          <Link
-            to="/admin-request"
-            className="font-medium text-accent-amber hover:text-accent-burnt"
-          >
-            Request Admin Access
+        <p className="text-gray-500">
+          Admin access?{' '}
+          <Link to="/admin-verify" className="text-gray-400 hover:text-accent-amber">
+            Enter Admin Portal
           </Link>
-
-        </p>
-
-        <p className="text-sm text-gray-400">
-
-          Already authorized?{' '}
-
-          <Link
-            to="/admin-verify"
-            className="font-medium text-accent-amber hover:text-accent-burnt"
-          >
-            Admin Authentication
+          <span className="mx-1.5 text-gray-700">•</span>
+          <Link to="/admin-request" className="text-gray-400 hover:text-accent-amber">
+            Request Access
           </Link>
-
         </p>
-
       </div>
-
     </div>
   );
 }

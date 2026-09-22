@@ -20,7 +20,8 @@ public class AdminAccessController {
     ) {
 
         adminAccessService.requestAdminAccess(
-                request.getEmail()
+                request.getEmail(),
+                request.getDomain()
         );
 
         return ResponseEntity.ok(
@@ -36,15 +37,19 @@ public class AdminAccessController {
             @PathVariable String token
     ) {
 
-        String status =
-                adminAccessService.getApprovalStatus(
+        AdminAccessRequest request =
+                adminAccessService.getApprovalRequest(
                         token
                 );
 
         return ResponseEntity.ok(
                 Map.of(
                         "status",
-                        status
+                        request.getStatus(),
+                        "email",
+                        request.getEmail(),
+                        "domain",
+                        request.getDomain() != null ? request.getDomain() : ""
                 )
         );
     }

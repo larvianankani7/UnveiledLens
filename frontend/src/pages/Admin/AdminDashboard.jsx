@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Sun, Moon } from 'lucide-react';
 
 const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL ||
@@ -14,10 +15,32 @@ function AdminDashboard() {
     const [loading, setLoading] = useState(false);
     const [pdfLoading, setPdfLoading] = useState(false);
     const [error, setError] = useState('');
+    
+    const [adminTheme, setAdminTheme] = useState(() => {
+        return localStorage.getItem('unveiledlens-theme') || 'dark';
+    });
+
+    useEffect(() => {
+        document.documentElement.dataset.theme = adminTheme;
+    }, [adminTheme]);
 
     const token =
         sessionStorage.getItem('token') ||
         localStorage.getItem('token');
+
+    const role =
+        sessionStorage.getItem('role') ||
+        localStorage.getItem('role');
+
+    useEffect(() => {
+        if (!token || role !== 'ROLE_ADMIN') {
+            navigate('/admin-verify', { replace: true });
+        }
+    }, [navigate, token, role]);
+
+    if (!token || role !== 'ROLE_ADMIN') {
+        return null;
+    }
 
     const handleScan = async (event) => {
 
@@ -223,7 +246,7 @@ function AdminDashboard() {
         report?.findings || [];
 
     return (
-        <div className="admin-dashboard">
+        <div className="admin-dashboard relative z-10 page-enter">
 
             <header className="admin-dashboard-header">
 
@@ -249,6 +272,20 @@ function AdminDashboard() {
                     <span className="admin-role-badge">
                         ADMIN
                     </span>
+
+                    <button
+                        type="button"
+                        onClick={() => {
+                            const newTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+                            document.documentElement.dataset.theme = newTheme;
+                            localStorage.setItem('unveiledlens-theme', newTheme);
+                            setAdminTheme(newTheme);
+                        }}
+                        className="admin-theme-button p-2 text-gray-400 hover:text-accent-amber transition-colors rounded-md border border-transparent hover:border-glass-border hover:bg-glass-light flex items-center justify-center"
+                        title="Toggle theme"
+                    >
+                        {adminTheme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                    </button>
 
                     <button
                         type="button"

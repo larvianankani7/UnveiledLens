@@ -12,6 +12,8 @@ public class AdminAccessRequest {
     private Long id;
     @Column(nullable = false)
     private String email;
+    @Column(length = 255)
+    private String domain;
     @Column(nullable = false, unique = true)
     private String requestTokenHash;
     @Column(unique = true)

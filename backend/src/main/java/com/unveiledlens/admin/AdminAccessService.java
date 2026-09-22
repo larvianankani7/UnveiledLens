@@ -39,12 +39,17 @@ public class AdminAccessService {
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Transactional
-    public void requestAdminAccess(String email) {
+    public void requestAdminAccess(String email, String domain) {
 
         String normalizedEmail = normalizeEmail(email);
+        String normalizedDomain = normalizeDomain(domain);
 
         if (normalizedEmail.isBlank()) {
             throw new IllegalArgumentException("Email is required.");
+        }
+
+        if (normalizedDomain.isBlank()) {
+            throw new IllegalArgumentException("Domain is required.");
         }
 
         String rawToken = generateSecureToken(32);
@@ -52,6 +57,7 @@ public class AdminAccessService {
         AdminAccessRequest request = new AdminAccessRequest();
 
         request.setEmail(normalizedEmail);
+        request.setDomain(normalizedDomain);
         request.setRequestTokenHash(hash(rawToken));
         request.setStatus("PENDING");
         request.setCreatedAt(LocalDateTime.now());
@@ -66,6 +72,7 @@ public class AdminAccessService {
 
             emailService.sendAdminApprovalRequest(
                     normalizedEmail,
+                    normalizedDomain,
                     rawToken
             );
 
@@ -84,6 +91,17 @@ public class AdminAccessService {
                 "Admin access request submitted",
                 null
         );
+    }
+
+    @Transactional
+    public AdminAccessRequest getApprovalRequest(String token) {
+
+        AdminAccessRequest request =
+                findRequestByToken(token);
+
+        expireRequestIfNecessary(request);
+
+        return request;
     }
 
     @Transactional
@@ -423,6 +441,20 @@ public class AdminAccessService {
         return email == null
                 ? ""
                 : email.trim().toLowerCase();
+    }
+
+    private String normalizeDomain(
+            String domain
+    ) {
+
+        if (domain == null) {
+            return "";
+        }
+
+        return domain.trim()
+                .replaceFirst("(?i)^https?://", "")
+                .replaceFirst("/.*$", "")
+                .toLowerCase();
     }
 
     private String generateSecureToken(

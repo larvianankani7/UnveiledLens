@@ -32,52 +32,35 @@ public class DiscoveryController {
 
     @PostMapping("/report/pdf")
     public ResponseEntity<byte[]> generatePdf(
-            @Valid @RequestBody AdminScanRequest request
+            Authentication authentication
     ) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email).orElse(null);
+
+        if (user == null || user.getDomain() == null || user.getDomain().isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
+        }
 
         String domain;
-
         try {
-
-            domain =
-                    normalizeDomain(
-                            request.getDomain()
-                    );
-
+            domain = normalizeDomain(user.getDomain());
         } catch (IllegalArgumentException e) {
-
-            return ResponseEntity
-                    .badRequest()
-                    .build();
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         }
 
-        if (!isValidDomain(domain)) {
+        ExposureReport detailedReport = discoveryService.runDiscovery(domain);
+        UserExposureReport userReport = buildUserReport(detailedReport);
 
-            return ResponseEntity
-                    .badRequest()
-                    .build();
-        }
-
-        ExposureReport report =
-                discoveryService.runAdminDiscovery(
-                        domain
-                );
-
-        byte[] pdf =
-                pdfReportService.generateReport(
-                        report
-                );
+        byte[] pdf = pdfReportService.generateUserReport(userReport);
 
         return ResponseEntity
                 .ok()
-                .header(
-                        "Content-Disposition",
-                        "attachment; filename=\"unveiledlens-report.pdf\""
-                )
-                .header(
-                        "Content-Type",
-                        "application/pdf"
-                )
+                .header("Content-Disposition", "attachment; filename=\"unveiledlens-user-report.pdf\"")
+                .header("Content-Type", "application/pdf")
                 .body(pdf);
     }
 

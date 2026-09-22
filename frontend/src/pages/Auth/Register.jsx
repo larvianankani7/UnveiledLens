@@ -6,17 +6,22 @@ import {
   Globe,
   CheckCircle2,
   Loader2,
-  ArrowLeft
+  ArrowLeft,
+  KeyRound,
+  Phone
 } from 'lucide-react';
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 export default function Register() {
+  const [isAdmin, setIsAdmin] = useState(false);
   const [step, setStep] = useState(1);
 
   const [formData, setFormData] = useState({
     email: '',
+    phone: '',
+    adminId: '',
     password: '',
     domain: ''
   });
@@ -37,64 +42,59 @@ export default function Register() {
   };
 
   const handleInitialSubmit = async (event) => {
-
     event.preventDefault();
-
     setError('');
     setLoading(true);
 
     try {
-
-      const response = await fetch(
-        `${API_BASE_URL}/api/auth/register/user`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: formData.email.trim().toLowerCase(),
-            password: formData.password,
-            domain: formData.domain.trim()
-          })
-        }
-      );
-
-      const data =
-        await response.json().catch(() => null);
-
-      if (!response.ok) {
-        throw new Error(
-          data?.message ||
-          data?.error ||
-          'Unable to start registration.'
+      if (isAdmin) {
+        const response = await fetch(
+          `${API_BASE_URL}/api/admin-access/verify-id`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: formData.email.trim().toLowerCase(),
+              adminId: formData.adminId.trim()
+            })
+          }
         );
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+          throw new Error(data?.message || data?.error || 'Unable to verify Admin ID.');
+        }
+        setStep(2);
+      } else {
+        const response = await fetch(
+          `${API_BASE_URL}/api/auth/register/user`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: formData.email.trim().toLowerCase(),
+              password: formData.password,
+              domain: formData.domain.trim()
+            })
+          }
+        );
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+          throw new Error(data?.message || data?.error || 'Unable to start registration.');
+        }
+        setStep(2);
       }
-
-      setStep(2);
-
     } catch (err) {
-
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to start registration.'
-      );
-
+      setError(err instanceof Error ? err.message : 'Unable to start registration.');
     } finally {
-
       setLoading(false);
     }
   };
 
   const handleVerify = async (event) => {
-
     event.preventDefault();
 
     if (otp.length !== 6) {
-      setError(
-        'Enter the 6-digit verification code.'
-      );
+      setError('Enter the 6-digit verification code.');
       return;
     }
 
@@ -102,51 +102,49 @@ export default function Register() {
     setLoading(true);
 
     try {
-
-      const response = await fetch(
-        `${API_BASE_URL}/api/auth/verify-otp`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            identifier:
-              formData.email
-                .trim()
-                .toLowerCase(),
-            otp
-          })
-        }
-      );
-
-      const data =
-        await response.json().catch(() => null);
-
-      if (!response.ok) {
-        throw new Error(
-          data?.message ||
-          data?.error ||
-          'Invalid or expired OTP.'
+      if (isAdmin) {
+        const response = await fetch(
+          `${API_BASE_URL}/api/admin-access/verify-otp`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: formData.email.trim().toLowerCase(),
+              otp
+            })
+          }
         );
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(data?.message || data?.error || 'Invalid or expired OTP.');
+        
+        sessionStorage.setItem('token', data.token);
+        sessionStorage.setItem('role', 'ROLE_ADMIN');
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        
+        setStep(3);
+        setTimeout(() => navigate('/admin'), 1200);
+      } else {
+        const response = await fetch(
+          `${API_BASE_URL}/api/auth/verify-otp`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              identifier: formData.email.trim().toLowerCase(),
+              otp
+            })
+          }
+        );
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(data?.message || data?.error || 'Invalid or expired OTP.');
+        
+        setStep(3);
+        setTimeout(() => navigate('/login'), 1200);
       }
-
-      setStep(3);
-
-      setTimeout(() => {
-        navigate('/login');
-      }, 1200);
-
     } catch (err) {
-
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Invalid or expired OTP.'
-      );
-
+      setError(err instanceof Error ? err.message : 'Invalid or expired OTP.');
     } finally {
-
       setLoading(false);
     }
   };
@@ -166,100 +164,116 @@ export default function Register() {
         Create an Account
       </h2>
 
+      <div className="flex justify-center space-x-6 mb-6 border-b border-glass-border pb-3">
+        <button
+          type="button"
+          onClick={() => { setIsAdmin(false); setError(''); setStep(1); }}
+          className={`text-sm font-medium transition-all pb-2 -mb-[13px] border-b-2 ${!isAdmin ? 'text-accent-amber border-accent-amber drop-shadow-[0_0_8px_rgba(217,119,6,0.5)]' : 'text-gray-400 border-transparent hover:text-white'}`}
+        >
+          User Registration
+        </button>
+        <button
+          type="button"
+          onClick={() => { setIsAdmin(true); setError(''); setStep(1); }}
+          className={`text-sm font-medium transition-all pb-2 -mb-[13px] border-b-2 ${isAdmin ? 'text-accent-amber border-accent-amber drop-shadow-[0_0_8px_rgba(217,119,6,0.5)]' : 'text-gray-400 border-transparent hover:text-white'}`}
+        >
+          Admin Registration
+        </button>
+      </div>
+
       {step === 1 && (
         <form
           onSubmit={handleInitialSubmit}
           className="space-y-6"
         >
 
-          <div>
+          {isAdmin && (
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Admin Authorization ID
+              </label>
+              <div className="relative">
+                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+                <input
+                  type="text"
+                  required
+                  value={formData.adminId}
+                  onChange={(event) => updateField('adminId', event.target.value)}
+                  className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-amber"
+                  placeholder="AUTH-XXXX-XXXX"
+                />
+              </div>
+            </div>
+          )}
 
+          <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">
               Company Email
             </label>
-
             <div className="relative">
-
-              <Mail
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500"
-              />
-
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
               <input
                 type="email"
                 required
                 value={formData.email}
-                onChange={(event) =>
-                  updateField(
-                    'email',
-                    event.target.value
-                  )
-                }
+                onChange={(event) => updateField('email', event.target.value)}
                 className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-amber"
                 placeholder="security@yourdomain.com"
               />
-
             </div>
-
           </div>
 
-          <div>
+          {isAdmin && (
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Phone Number
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+                <input
+                  type="tel"
+                  required
+                  value={formData.phone}
+                  onChange={(event) => updateField('phone', event.target.value)}
+                  className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-amber"
+                  placeholder="+1 (555) 000-0000"
+                />
+              </div>
+            </div>
+          )}
 
+          <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">
               Target Domain
             </label>
-
             <div className="relative">
-
-              <Globe
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500"
-              />
-
+              <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
               <input
                 type="text"
                 required
                 value={formData.domain}
-                onChange={(event) =>
-                  updateField(
-                    'domain',
-                    event.target.value
-                  )
-                }
+                onChange={(event) => updateField('domain', event.target.value)}
                 className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-amber"
                 placeholder="yourdomain.com"
               />
-
             </div>
-
           </div>
 
           <div>
-
             <label className="block text-sm font-medium text-gray-300 mb-1">
               Password
             </label>
-
             <div className="relative">
-
-              <Lock
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500"
-              />
-
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
               <input
                 type="password"
                 required
                 value={formData.password}
-                onChange={(event) =>
-                  updateField(
-                    'password',
-                    event.target.value
-                  )
-                }
+                onChange={(event) => updateField('password', event.target.value)}
                 className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-amber"
                 placeholder="••••••••"
               />
-
             </div>
-
           </div>
 
           {error && (

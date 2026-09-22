@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   ArrowLeft,
@@ -16,14 +15,14 @@ import {
   X
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTheme } from '../../hooks/useTheme.js';
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  'http://localhost:8080';
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 export default function Settings() {
-
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   const [profile, setProfile] = useState(null);
   const [username, setUsername] = useState('');
@@ -35,26 +34,15 @@ export default function Settings() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const [theme, setTheme] = useState(
-    localStorage.getItem('unveiledlens-theme') || 'dark'
-  );
+  const clearAuthentication = () => {
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('role');
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+  };
 
   useEffect(() => {
-
-    document.documentElement.dataset.theme =
-      theme;
-
-    localStorage.setItem(
-      'unveiledlens-theme',
-      theme
-    );
-
-  }, [theme]);
-
-  useEffect(() => {
-
     const loadProfile = async () => {
-
       const token =
         sessionStorage.getItem('token') ||
         localStorage.getItem('token');
@@ -65,30 +53,24 @@ export default function Settings() {
       }
 
       try {
-
-        const response =
-          await fetch(
-            `${API_BASE_URL}/api/user/profile`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`
-              }
+        const response = await fetch(
+          `${API_BASE_URL}/api/user/profile`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
             }
-          );
+          }
+        );
 
         if (response.status === 401) {
-
           clearAuthentication();
           navigate('/login', { replace: true });
-
           return;
         }
 
-        const data =
-          await response.json().catch(() => null);
+        const data = await response.json().catch(() => null);
 
         if (!response.ok) {
-
           throw new Error(
             data?.message ||
             data?.error ||
@@ -98,54 +80,29 @@ export default function Settings() {
 
         setProfile(data);
         setUsername(data.username || '');
-
       } catch (err) {
-
         setError(
           err instanceof Error
             ? err.message
             : 'Unable to load your profile.'
         );
-
       } finally {
-
         setLoading(false);
       }
     };
 
     loadProfile();
-
   }, [navigate]);
 
-  const clearAuthentication = () => {
-
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('role');
-
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-  };
-
   const handleLogout = () => {
-
     clearAuthentication();
-
-    navigate('/login', {
-      replace: true
-    });
+    navigate('/login', { replace: true });
   };
 
   const handleSaveUsername = async () => {
-
-    const trimmed =
-      username.trim();
-
+    const trimmed = username.trim();
     if (!trimmed) {
-
-      setError(
-        'Username cannot be empty.'
-      );
-
+      setError('Username cannot be empty.');
       return;
     }
 
@@ -154,42 +111,33 @@ export default function Settings() {
     setSuccess('');
 
     try {
-
       const token =
         sessionStorage.getItem('token') ||
         localStorage.getItem('token');
 
-      const response =
-        await fetch(
-          `${API_BASE_URL}/api/user/profile/username`,
-          {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              username: trimmed
-            })
-          }
-        );
+      const response = await fetch(
+        `${API_BASE_URL}/api/user/profile/username`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            username: trimmed
+          })
+        }
+      );
 
-      const data =
-        await response.json().catch(() => null);
+      const data = await response.json().catch(() => null);
 
       if (response.status === 401) {
-
         clearAuthentication();
-
-        navigate('/login', {
-          replace: true
-        });
-
+        navigate('/login', { replace: true });
         return;
       }
 
       if (!response.ok) {
-
         throw new Error(
           data?.message ||
           data?.error ||
@@ -198,517 +146,289 @@ export default function Settings() {
       }
 
       setUsername(data.username);
-      setProfile(current => ({
+      setProfile((current) => ({
         ...current,
         username: data.username
       }));
 
       setEditingUsername(false);
-      setSuccess(
-        'Username updated successfully.'
-      );
-
+      setSuccess('Username updated successfully.');
     } catch (err) {
-
       setError(
         err instanceof Error
           ? err.message
           : 'Unable to update username.'
       );
-
     } finally {
-
       setSaving(false);
     }
   };
 
   const cancelUsernameEdit = () => {
-
-    setUsername(
-      profile?.username || ''
-    );
-
+    setUsername(profile?.username || '');
     setEditingUsername(false);
     setError('');
   };
 
   if (loading) {
-
     return (
-      <div className="flex-1 flex items-center justify-center px-6 py-16">
-
+      <div className="flex-1 flex items-center justify-center px-6 py-20">
         <div className="text-center">
-
-          <div className="mx-auto h-10 w-10 border-2 border-accent-burnt/30 border-t-accent-burnt rounded-full animate-spin" />
-
-          <p className="text-sm text-gray-400 mt-4">
-            Loading your settings...
+          <div className="mx-auto h-8 w-8 border-2 border-accent-burnt/30 border-t-accent-burnt rounded-full animate-spin" />
+          <p className="text-xs font-mono text-gray-500 mt-4 uppercase tracking-widest">
+            Loading settings...
           </p>
-
         </div>
-
       </div>
     );
   }
 
   return (
-    <div className="flex-1 px-5 py-8 lg:px-10 lg:py-12">
+    <div className="flex-1 px-4 sm:px-6 lg:px-10 py-8 lg:py-10 max-w-4xl mx-auto w-full page-enter">
+      
+      {/* Return Navigation */}
+      <Link
+        to="/search"
+        className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-gray-400 hover:text-white transition-colors mb-6 group"
+      >
+        <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" />
+        <span>Back to Exposure Search</span>
+      </Link>
 
-      <div className="max-w-4xl mx-auto">
-
-        <Link
-          to="/search"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-accent-amber transition-colors mb-7"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Search
-        </Link>
-
-        <div className="mb-8">
-
-          <div className="flex items-center gap-3">
-
-            <div className="h-11 w-11 rounded-xl bg-accent-burnt/10 border border-accent-burnt/20 flex items-center justify-center">
-
-              <SettingsIcon className="h-5 w-5 text-accent-amber" />
-
-            </div>
-
-            <div>
-
-              <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
-                Account
-              </p>
-
-              <h1 className="text-3xl font-semibold text-white tracking-tight">
-                Settings
-              </h1>
-
-            </div>
-
-          </div>
-
-          <p className="text-sm text-gray-400 mt-3 max-w-xl">
-            Manage your profile and personal preferences.
-          </p>
-
+      {/* Header */}
+      <div className="flex items-center gap-3.5 mb-8 pb-6 border-b border-[var(--border-subtle)]">
+        <div className="h-10 w-10 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center text-accent-amber">
+          <SettingsIcon className="h-5 w-5" />
         </div>
+        <div>
+          <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-gray-500 block">
+            ACCOUNT PREFERENCES
+          </span>
+          <h1 className="text-2xl font-bold text-white tracking-tight">
+            Settings & Identity
+          </h1>
+        </div>
+      </div>
 
-        {error && (
+      {/* Alerts */}
+      {error && (
+        <div className="mb-6 rounded-xl border border-red-900/60 bg-red-950/30 px-5 py-3 text-xs text-red-300">
+          {error}
+        </div>
+      )}
 
-          <div className="mb-5 rounded-xl border border-red-900/60 bg-red-950/30 px-5 py-4 text-sm text-red-300">
-            {error}
+      {success && (
+        <div className="mb-6 rounded-xl border border-emerald-900/50 bg-emerald-950/20 px-5 py-3 text-xs text-emerald-300 flex items-center gap-2">
+          <Check className="h-4 w-4" />
+          <span>{success}</span>
+        </div>
+      )}
+
+      <div className="space-y-6">
+        
+        {/* Profile Details Panel */}
+        <section className="glass-panel card-glow rounded-xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center gap-2.5">
+            <User className="h-4 w-4 text-accent-amber" />
+            <h2 className="text-sm font-semibold text-white uppercase tracking-wider font-mono">
+              Profile & Verified Scope
+            </h2>
           </div>
 
-        )}
+          <div className="p-6 space-y-5">
+            <ProfileRow
+              icon={Mail}
+              label="Account Email"
+              value={profile?.email}
+              description="Primary institutional email address"
+            />
 
-        {success && (
+            <ProfileRow
+              icon={Globe}
+              label="Verified Domain"
+              value={profile?.domain}
+              description="The domain surface bound to this account"
+              mono
+            />
 
-          <div className="mb-5 rounded-xl border border-emerald-900/50 bg-emerald-950/20 px-5 py-4 text-sm text-emerald-300 flex items-center gap-2">
-
-            <Check className="h-4 w-4" />
-
-            {success}
-
-          </div>
-
-        )}
-
-        <div className="space-y-6">
-
-          <section className="glass-panel rounded-2xl border border-glass-border overflow-hidden">
-
-            <div className="px-6 py-5 border-b border-glass-border">
-
-              <div className="flex items-center gap-3">
-
-                <User className="h-5 w-5 text-accent-amber" />
-
-                <div>
-
-                  <h2 className="text-lg font-medium text-white">
-                    Profile
-                  </h2>
-
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    Your account information
-                  </p>
-
-                </div>
-
+            {/* Editable Username */}
+            <div className="flex items-start gap-4 py-2 border-t border-[var(--border-subtle)] pt-4">
+              <div className="h-9 w-9 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center shrink-0 text-gray-400">
+                <User className="h-4 w-4" />
               </div>
 
-            </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-gray-500 block mb-1">
+                  DISPLAY USERNAME
+                </span>
 
-            <div className="p-6 space-y-5">
+                {editingUsername ? (
+                  <div className="mt-2 flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      maxLength={30}
+                      autoFocus
+                      className="input-technical flex-1 px-3 py-2 text-xs font-mono"
+                    />
 
-              <ProfileRow
-                icon={Mail}
-                label="Email"
-                value={profile?.email}
-                description="Your verified account email"
-              />
-
-              <ProfileRow
-                icon={Globe}
-                label="Verified domain"
-                value={profile?.domain}
-                description="The domain associated with this account"
-                mono
-              />
-
-              <div className="flex items-start gap-4 py-2">
-
-                <div className="h-10 w-10 rounded-xl bg-charcoal-lighter border border-glass-border flex items-center justify-center shrink-0">
-
-                  <User className="h-4 w-4 text-gray-400" />
-
-                </div>
-
-                <div className="flex-1 min-w-0">
-
-                  <p className="text-xs uppercase tracking-wider text-gray-500">
-                    Username
-                  </p>
-
-                  {editingUsername ? (
-
-                    <div className="mt-2 flex flex-col sm:flex-row gap-2">
-
-                      <input
-                        type="text"
-                        value={username}
-                        onChange={event =>
-                          setUsername(
-                            event.target.value
-                          )
-                        }
-                        maxLength={30}
-                        autoFocus
-                        className="flex-1 bg-charcoal-lighter border border-glass-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent-amber"
-                      />
-
-                      <div className="flex gap-2">
-
-                        <button
-                          type="button"
-                          onClick={handleSaveUsername}
-                          disabled={saving}
-                          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-accent-burnt text-white text-sm hover:bg-accent-dark disabled:opacity-60 transition-colors"
-                        >
-                          <Save className="h-4 w-4" />
-                          {saving
-                            ? 'Saving...'
-                            : 'Save'}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={cancelUsernameEdit}
-                          disabled={saving}
-                          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-glass-border text-gray-300 hover:text-white transition-colors"
-                        >
-                          <X className="h-4 w-4" />
-                          Cancel
-                        </button>
-
-                      </div>
-
-                    </div>
-
-                  ) : (
-
-                    <div className="flex items-center gap-3 mt-1">
-
-                      <p className="text-base text-white font-medium break-all">
-                        {profile?.username || 'Not set'}
-                      </p>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={handleSaveUsername}
+                        disabled={saving}
+                        className="btn-primary text-xs px-3.5 py-1.5 gap-1.5"
+                      >
+                        <Save className="h-3.5 w-3.5" />
+                        <span>{saving ? 'Saving...' : 'Save'}</span>
+                      </button>
 
                       <button
                         type="button"
-                        onClick={() => {
-                          setError('');
-                          setSuccess('');
-                          setEditingUsername(true);
-                        }}
-                        className="p-1.5 rounded-md text-gray-500 hover:text-accent-amber hover:bg-glass-light transition-colors"
-                        title="Edit username"
+                        onClick={cancelUsernameEdit}
+                        disabled={saving}
+                        className="btn-secondary text-xs px-3 py-1.5 gap-1"
                       >
-                        <Pencil className="h-4 w-4" />
+                        <X className="h-3.5 w-3.5" />
+                        <span>Cancel</span>
                       </button>
-
                     </div>
-
-                  )}
-
-                  <p className="text-xs text-gray-500 mt-1">
-                    Choose how you want to appear inside UnveiledLens.
-                  </p>
-
-                </div>
-
-              </div>
-
-              <div className="flex items-start gap-4 py-2">
-
-                <div className="h-10 w-10 rounded-xl bg-accent-burnt/10 border border-accent-burnt/20 flex items-center justify-center shrink-0">
-
-                  <ShieldCheck className="h-4 w-4 text-accent-amber" />
-
-                </div>
-
-                <div className="flex-1">
-
-                  <p className="text-xs uppercase tracking-wider text-gray-500">
-                    Account status
-                  </p>
-
-                  <div className="flex items-center gap-2 mt-1">
-
-                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
-
-                    <p className="text-sm font-medium text-white">
-                      {profile?.accountStatus || 'Active'}
-                    </p>
-
                   </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-white font-mono">
+                      {profile?.username || 'Not set'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setError('');
+                        setSuccess('');
+                        setEditingUsername(true);
+                      }}
+                      className="p-1 rounded text-gray-500 hover:text-accent-amber hover:bg-glass-light transition-colors"
+                      title="Edit username"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
 
-                  <p className="text-xs text-gray-500 mt-1">
-                    Your account remains available after logout.
-                  </p>
-
-                </div>
-
-              </div>
-
-              <div className="pt-2">
-
-                <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">
-                  Role
+                <p className="text-[11px] text-gray-500 mt-1">
+                  Your identity label within UnveiledLens reports.
                 </p>
+              </div>
+            </div>
 
-                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-accent-burnt/15 text-accent-amber border border-accent-burnt/25">
-                  {profile?.role === 'ROLE_ADMIN'
-                    ? 'ADMIN'
-                    : 'USER'}
+            {/* Account Status & Role */}
+            <div className="flex items-center justify-between pt-4 border-t border-[var(--border-subtle)]">
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-gray-500 block">
+                  AUTHORIZATION ROLE
                 </span>
-
+                <span className="badge-technical badge-amber mt-1">
+                  {profile?.role === 'ROLE_ADMIN' ? 'ADMIN' : 'USER'}
+                </span>
               </div>
 
-            </div>
-
-          </section>
-
-          <section className="glass-panel rounded-2xl border border-glass-border overflow-hidden">
-
-            <div className="px-6 py-5 border-b border-glass-border">
-
-              <div className="flex items-center gap-3">
-
-                <Sun className="h-5 w-5 text-accent-amber" />
-
-                <div>
-
-                  <h2 className="text-lg font-medium text-white">
-                    Appearance
-                  </h2>
-
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    Choose how UnveiledLens looks for you
-                  </p>
-
+              <div className="text-right">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-gray-500 block">
+                  ACCOUNT STATUS
+                </span>
+                <div className="flex items-center justify-end gap-1.5 mt-1 font-mono text-xs text-white">
+                  <span className="status-pip status-pip-emerald" />
+                  <span>{profile?.accountStatus || 'ACTIVE'}</span>
                 </div>
-
               </div>
-
             </div>
+          </div>
+        </section>
 
-            <div className="p-6">
+        {/* Appearance Panel */}
+        <section className="glass-panel card-glow rounded-xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center gap-2.5">
+            <Sun className="h-4 w-4 text-accent-amber" />
+            <h2 className="text-sm font-semibold text-white uppercase tracking-wider font-mono">
+              Appearance & Theme
+            </h2>
+          </div>
 
-              <div className="flex items-center justify-between gap-5">
-
-                <div className="flex items-center gap-4">
-
-                  <div className="h-10 w-10 rounded-xl bg-charcoal-lighter border border-glass-border flex items-center justify-center">
-
-                    {theme === 'dark' ? (
-                      <Moon className="h-4 w-4 text-gray-300" />
-                    ) : (
-                      <Sun className="h-4 w-4 text-accent-amber" />
-                    )}
-
-                  </div>
-
-                  <div>
-
-                    <p className="text-sm font-medium text-white">
-                      {theme === 'dark'
-                        ? 'Dark mode'
-                        : 'Light mode'}
-                    </p>
-
-                    <p className="text-xs text-gray-500 mt-1">
-                      This preference is saved on this device.
-                    </p>
-
-                  </div>
-
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setTheme(
-                      current =>
-                        current === 'dark'
-                          ? 'light'
-                          : 'dark'
-                    )
-                  }
-                  role="switch"
-                  aria-checked={theme === 'light'}
-                  className={`relative w-14 h-8 rounded-full border transition-all duration-300 ${
-                    theme === 'light'
-                      ? 'bg-accent-burnt border-accent-burnt'
-                      : 'bg-charcoal-lighter border-glass-border'
-                  }`}
-                >
-
-                  <span
-                    className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-md transition-transform duration-300 ${
-                      theme === 'light'
-                        ? 'translate-x-6'
-                        : 'translate-x-1'
-                    }`}
-                  />
-
-                </button>
-
+          <div className="p-6 flex items-center justify-between">
+            <div className="flex items-center gap-3.5">
+              <div className="h-9 w-9 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center text-accent-amber">
+                {theme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
               </div>
-
-            </div>
-
-          </section>
-
-          <section className="glass-panel rounded-2xl border border-glass-border overflow-hidden">
-
-            <div className="px-6 py-5 border-b border-glass-border">
-
-              <div className="flex items-center gap-3">
-
-                <ShieldCheck className="h-5 w-5 text-accent-amber" />
-
-                <div>
-
-                  <h2 className="text-lg font-medium text-white">
-                    Security
-                  </h2>
-
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    How your account is protected
-                  </p>
-
-                </div>
-
+              <div>
+                <span className="text-sm font-medium text-white block">
+                  {theme === 'dark' ? 'Dark Mode (Active)' : 'Light Mode (Active)'}
+                </span>
+                <span className="text-xs text-gray-500 font-mono">
+                  Controlled telemetry palette across the intelligence system
+                </span>
               </div>
-
             </div>
-
-            <div className="p-6">
-
-              <div className="rounded-xl border border-glass-border bg-charcoal-lighter/40 p-4">
-
-                <p className="text-sm font-medium text-white">
-                  Email verification
-                </p>
-
-                <p className="text-xs text-gray-500 mt-1 leading-5">
-                  A one-time verification code is required when
-                  you authenticate. Your password is never displayed
-                  or stored in readable form.
-                </p>
-
-              </div>
-
-            </div>
-
-          </section>
-
-          <section className="pt-2">
 
             <button
               type="button"
-              onClick={handleLogout}
-              className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border border-red-900/50 bg-red-950/20 text-red-300 hover:text-red-200 hover:bg-red-950/35 transition-all"
+              onClick={toggleTheme}
+              className="btn-secondary text-xs px-4 py-2 font-mono uppercase"
             >
-              <LogOut className="h-4 w-4" />
-              Log out
+              Switch to {theme === 'dark' ? 'Light' : 'Dark'}
             </button>
+          </div>
+        </section>
 
-          </section>
+        {/* Security Info Panel */}
+        <section className="glass-panel rounded-xl p-5 border border-glass-border">
+          <div className="flex items-start gap-3.5">
+            <div className="h-8 w-8 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center shrink-0 text-accent-amber">
+              <ShieldCheck className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="text-xs font-mono uppercase tracking-wider text-white">
+                Cryptographic Authentication
+              </h3>
+              <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+                Authentication sessions utilize one-time verification tokens. Passwords and keys are never stored in plaintext or readable representations.
+              </p>
+            </div>
+          </div>
+        </section>
 
+        {/* Logout Control */}
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full btn-secondary text-xs px-5 py-3 justify-center gap-2 text-red-400 hover:text-red-300 border-red-900/30 hover:border-red-800/60"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            <span>Terminate Authentication Session</span>
+          </button>
         </div>
-
-        <footer className="mt-12 pt-6 border-t border-glass-border text-center">
-
-          <p className="text-sm text-gray-500">
-            UnveiledLens
-          </p>
-
-          <p className="text-xs text-gray-600 mt-1">
-            Discover Beyond the Known.
-          </p>
-
-          <p className="text-xs text-gray-600 mt-2">
-            © {new Date().getFullYear()} UnveiledLens. All rights reserved.
-          </p>
-
-        </footer>
-
       </div>
-
     </div>
   );
 }
 
-function ProfileRow({
-  icon: Icon,
-  label,
-  value,
-  description,
-  mono = false
-}) {
-
+function ProfileRow({ icon: Icon, label, value, description, mono = false }) {
   return (
-    <div className="flex items-start gap-4 py-2">
-
-      <div className="h-10 w-10 rounded-xl bg-charcoal-lighter border border-glass-border flex items-center justify-center shrink-0">
-
-        <Icon className="h-4 w-4 text-gray-400" />
-
+    <div className="flex items-start gap-4">
+      <div className="h-9 w-9 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center shrink-0 text-gray-400">
+        <Icon className="h-4 w-4" />
       </div>
-
       <div className="min-w-0">
-
-        <p className="text-xs uppercase tracking-wider text-gray-500">
+        <span className="text-[10px] font-mono uppercase tracking-widest text-gray-500 block mb-0.5">
           {label}
-        </p>
-
-        <p
-          className={`text-sm text-white mt-1 break-all ${
-            mono ? 'font-mono' : ''
-          }`}
-        >
+        </span>
+        <span className={`text-sm text-white block ${mono ? 'font-mono' : 'font-medium'}`}>
           {value || 'Not available'}
-        </p>
-
-        <p className="text-xs text-gray-500 mt-1">
+        </span>
+        <span className="text-[11px] text-gray-500 block mt-0.5">
           {description}
-        </p>
-
+        </span>
       </div>
-
     </div>
   );
 }
-

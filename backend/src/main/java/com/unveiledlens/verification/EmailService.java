@@ -47,6 +47,7 @@ public class EmailService {
 
     public void sendAdminApprovalRequest(
             String requesterEmail,
+            String domain,
             String approvalToken
     ) {
 
@@ -78,6 +79,9 @@ public class EmailService {
                         + "\n\n"
                         + "Requester: "
                         + requesterEmail
+                        + "\n\n"
+                        + "Target Domain: "
+                        + (domain != null && !domain.isBlank() ? domain : "N/A")
                         + "\n\n"
                         + "Review the request:"
                         + "\n"

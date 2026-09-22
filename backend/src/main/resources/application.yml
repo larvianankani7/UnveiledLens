@@ -1,17 +1,21 @@
 spring:
   application:
     name: UnveiledLens
+
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:unveiledlens}?useSSL=false&allowPublicKeyRetrieval=true
     username: ${DB_USER:root}
-    password: ${DB_PASS}
+    password: ${DB_PASS:}
+
   jpa:
     hibernate:
       ddl-auto: validate
     show-sql: false
+
   flyway:
     enabled: true
     baseline-on-migrate: true
+
   mail:
     host: ${SMTP_HOST:smtp.gmail.com}
     port: ${SMTP_PORT:587}
@@ -25,7 +29,7 @@ spring:
             enable: true
 
 jwt:
-  secret: ${JWT_SECRET:8a4b6c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b}
+  secret: ${JWT_SECRET}
   expiration: 86400000
   admin-expiration: 28800000
 
@@ -36,12 +40,7 @@ ollama:
   url: ${OLLAMA_BASE_URL:http://localhost:11434}
   model: ${OLLAMA_MODEL:llama3}
 
-unveiledlens:
-  verification:
-    test-email: larvia75@gmail.com
-
 admin:
   approval-email: ${ADMIN_APPROVAL_EMAIL}
   request-expiration: 86400000
   authorization-expiration: 2592000000
-

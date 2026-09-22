@@ -4,7 +4,10 @@ import {
   ShieldCheck,
   CheckCircle2,
   XCircle,
-  Loader2
+  Loader2,
+  AlertTriangle,
+  Mail,
+  Globe
 } from 'lucide-react';
 
 const API_BASE_URL =
@@ -14,15 +17,13 @@ export default function AdminApproval() {
   const { token } = useParams();
 
   const [status, setStatus] = useState('LOADING');
+  const [requestDetails, setRequestDetails] = useState({ email: '', domain: '' });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-
     const loadStatus = async () => {
-
       try {
-
         const response = await fetch(
           `${API_BASE_URL}/api/admin-access/approval/${token}`
         );
@@ -38,11 +39,12 @@ export default function AdminApproval() {
         }
 
         setStatus(data.status);
-
+        setRequestDetails({
+          email: data.email || '',
+          domain: data.domain || ''
+        });
       } catch (error) {
-
         setStatus('ERROR');
-
         setMessage(
           error instanceof Error
             ? error.message
@@ -52,16 +54,13 @@ export default function AdminApproval() {
     };
 
     loadStatus();
-
   }, [token]);
 
   const processDecision = async (decision) => {
-
     setLoading(true);
     setMessage('');
 
     try {
-
       const response = await fetch(
         `${API_BASE_URL}/api/admin-access/approval/${token}`,
         {
@@ -93,104 +92,121 @@ export default function AdminApproval() {
 
       setMessage(
         decision === 'APPROVE'
-          ? 'The request has been approved. The requester will receive their Admin Authorization ID by email.'
-          : 'The request has been rejected.'
+          ? `The request has been approved. The generated Admin ID has been securely dispatched to ${requestDetails.email || 'the requester'}.`
+          : `The request has been rejected. Notification dispatched to ${requestDetails.email || 'the requester'}.`
       );
-
     } catch (error) {
-
       setMessage(
         error instanceof Error
           ? error.message
           : 'Unable to process request.'
       );
-
     } finally {
-
       setLoading(false);
     }
   };
 
-  const pending =
-    status === 'PENDING';
+  const pending = status === 'PENDING';
 
   return (
-    <div className="text-center">
+    <div className="text-center page-enter">
+      <div className="h-12 w-12 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mx-auto mb-3 text-accent-amber">
+        <ShieldCheck className="h-6 w-6" />
+      </div>
 
-      <ShieldCheck
-        className="h-14 w-14 text-accent-amber mx-auto mb-4"
-      />
+      <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-amber block mb-1">
+        PRIVILEGE ESCALATION
+      </span>
 
-      <h2 className="text-2xl font-bold text-white">
-        Admin Access Review
+      <h2 className="text-xl font-bold text-white tracking-tight">
+        Admin Access Decision
       </h2>
 
       {status === 'LOADING' && (
-        <div className="mt-6 flex justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-accent-amber" />
+        <div className="mt-6 flex flex-col items-center justify-center py-4">
+          <Loader2 className="h-6 w-6 animate-spin text-accent-amber mb-2" />
+          <span className="text-xs font-mono text-gray-500">Retrieving authorization record...</span>
         </div>
       )}
 
       {pending && (
         <div className="mt-6 space-y-4">
-
-          <p className="text-sm text-gray-400">
-            A user has requested administrative access.
+          <p className="text-xs text-gray-400 font-mono leading-relaxed">
+            An operator has formally requested administrative console access. Review the requested scope and submit an authorization decision.
           </p>
 
-          <div className="flex gap-3">
+          {/* Request Details Card */}
+          <div className="p-4 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] text-left space-y-2.5 font-mono text-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-500">REQUEST STATUS</span>
+              <span className="badge-technical badge-amber">PENDING</span>
+            </div>
 
-            <button
-              disabled={loading}
-              onClick={() =>
-                processDecision('APPROVE')
-              }
-              className="flex-1 flex justify-center items-center gap-2 rounded-md bg-accent-burnt py-2 text-sm font-medium text-white disabled:opacity-60"
-            >
-              <CheckCircle2 className="h-4 w-4" />
-              Approve
-            </button>
+            <div className="flex items-center gap-2 text-gray-300">
+              <Mail className="h-4 w-4 text-gray-500 flex-shrink-0" />
+              <span className="truncate">{requestDetails.email || '—'}</span>
+            </div>
 
-            <button
-              disabled={loading}
-              onClick={() =>
-                processDecision('REJECT')
-              }
-              className="flex-1 flex justify-center items-center gap-2 rounded-md border border-red-900/60 bg-red-950/30 py-2 text-sm font-medium text-red-300 disabled:opacity-60"
-            >
-              <XCircle className="h-4 w-4" />
-              Reject
-            </button>
-
+            {requestDetails.domain && (
+              <div className="flex items-center gap-2 text-gray-300">
+                <Globe className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                <span className="truncate">{requestDetails.domain}</span>
+              </div>
+            )}
           </div>
 
+          <div className="flex gap-3 pt-2">
+            <button
+              disabled={loading}
+              onClick={() => processDecision('APPROVE')}
+              className="btn-primary flex-1 text-xs py-2.5 gap-2 uppercase tracking-wider font-semibold"
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4" />
+              )}
+              <span>Approve Access</span>
+            </button>
+
+            <button
+              disabled={loading}
+              onClick={() => processDecision('REJECT')}
+              className="btn-secondary flex-1 text-xs py-2.5 gap-2 uppercase tracking-wider text-red-400 hover:text-red-300 border-red-900/40"
+            >
+              <XCircle className="h-4 w-4" />
+              <span>Reject</span>
+            </button>
+          </div>
         </div>
       )}
 
       {status === 'APPROVED' && (
-        <p className="mt-6 text-sm text-green-300">
+        <div className="mt-6 p-4 rounded-xl bg-emerald-950/20 border border-emerald-900/40 text-xs text-emerald-300 font-mono">
+          <CheckCircle2 className="h-6 w-6 text-emerald-400 mx-auto mb-2" />
           {message}
-        </p>
+        </div>
       )}
 
       {status === 'REJECTED' && (
-        <p className="mt-6 text-sm text-red-300">
+        <div className="mt-6 p-4 rounded-xl bg-red-950/20 border border-red-900/40 text-xs text-red-300 font-mono">
+          <XCircle className="h-6 w-6 text-red-400 mx-auto mb-2" />
           {message}
-        </p>
+        </div>
       )}
 
       {status === 'EXPIRED' && (
-        <p className="mt-6 text-sm text-yellow-300">
-          This approval request has expired.
-        </p>
+        <div className="mt-6 p-4 rounded-xl bg-amber-950/20 border border-amber-900/40 text-xs text-amber-300 font-mono flex items-center justify-center gap-2">
+          <AlertTriangle className="h-4 w-4 text-accent-amber" />
+          <span>This approval challenge has expired.</span>
+        </div>
       )}
 
       {status === 'ERROR' && (
-        <p className="mt-6 text-sm text-red-300">
+        <div className="mt-6 p-4 rounded-xl bg-red-950/20 border border-red-900/40 text-xs text-red-300 font-mono">
           {message}
-        </p>
+        </div>
       )}
-
     </div>
   );
 }
