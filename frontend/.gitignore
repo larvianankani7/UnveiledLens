@@ -22,3 +22,25 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Java / Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
