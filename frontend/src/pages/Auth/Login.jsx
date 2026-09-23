@@ -127,7 +127,7 @@ export default function Login() {
       </Link>
 
       <div className="text-center mb-6">
-        <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-amber block mb-1">
+        <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-cyan block mb-1">
           AUTHENTICATION GATEWAY
         </span>
         <h2 className="text-xl font-bold text-white tracking-tight">
@@ -201,7 +201,7 @@ export default function Login() {
 
       {step === 2 && (
         <form onSubmit={handleVerifyOtp} className="space-y-5 text-center">
-          <div className="h-10 w-10 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mx-auto text-accent-amber">
+          <div className="h-10 w-10 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mx-auto text-accent-cyan">
             <KeyRound className="h-5 w-5" />
           </div>
 
@@ -249,18 +249,18 @@ export default function Login() {
       <div className="mt-8 pt-5 border-t border-[var(--border-subtle)] text-center space-y-2.5 text-xs font-mono">
         <p className="text-gray-400">
           Need an account?{' '}
-          <Link to="/register" className="text-accent-amber hover:underline font-medium">
+          <Link to="/register" className="text-accent-cyan hover:underline font-medium">
             Register Domain Scope
           </Link>
         </p>
 
         <p className="text-gray-500">
           Admin access?{' '}
-          <Link to="/admin-verify" className="text-gray-400 hover:text-accent-amber">
+          <Link to="/admin-verify" className="text-gray-400 hover:text-accent-cyan">
             Enter Admin Portal
           </Link>
           <span className="mx-1.5 text-gray-700">•</span>
-          <Link to="/admin-request" className="text-gray-400 hover:text-accent-amber">
+          <Link to="/admin-request" className="text-gray-400 hover:text-accent-cyan">
             Request Access
           </Link>
         </p>

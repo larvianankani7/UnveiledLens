@@ -84,8 +84,8 @@ export default function MainLayout() {
                         to={homePath}
                         className="flex items-center space-x-3 group focus:outline-none"
                     >
-                        <div className="h-9 w-9 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center transition-transform group-hover:border-[var(--accent-amber)]/40">
-                            <ScanSearch className="h-5 w-5 text-accent-amber transition-transform group-hover:scale-105" />
+                        <div className="h-9 w-9 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center transition-transform group-hover:border-[var(--accent-cyan)]/40">
+                            <ScanSearch className="h-5 w-5 text-accent-cyan transition-transform group-hover:scale-105" />
                         </div>
                         <div className="flex flex-col">
                             <span className="font-bold text-base tracking-wider uppercase text-white font-mono leading-tight">
@@ -108,7 +108,7 @@ export default function MainLayout() {
                             aria-label="Toggle theme"
                         >
                             {theme === 'dark' ? (
-                                <Sun className="h-4 w-4 text-accent-amber" />
+                                <Sun className="h-4 w-4 text-accent-cyan" />
                             ) : (
                                 <Moon className="h-4 w-4 text-gray-400" />
                             )}
@@ -118,7 +118,7 @@ export default function MainLayout() {
                             <>
                                 {/* User Badge */}
                                 <div className="hidden sm:flex items-center space-x-2 px-2.5 py-1 rounded-md bg-[var(--bg-surface-soft)] border border-[var(--border-primary)]">
-                                    <span className="status-pip status-pip-amber status-pulse" />
+                                    <span className="status-pip status-pip-cyan status-pulse" />
                                     <span className="text-[11px] font-mono font-medium tracking-wider uppercase text-gray-300">
                                         USER
                                     </span>
@@ -173,7 +173,7 @@ export default function MainLayout() {
             <footer className="border-t border-glass-border py-8 text-center bg-[var(--bg-primary)]/70 backdrop-blur-sm relative z-10 text-xs text-gray-500">
                 <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
                     <div className="flex items-center space-x-2">
-                        <span className="status-pip status-pip-amber" />
+                        <span className="status-pip status-pip-cyan" />
                         <span className="font-mono text-gray-400 tracking-wider uppercase text-[11px]">
                             UNVEILEDLENS
                         </span>

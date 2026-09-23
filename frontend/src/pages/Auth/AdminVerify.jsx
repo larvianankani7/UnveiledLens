@@ -147,7 +147,7 @@ export default function AdminVerify() {
       </Link>
 
       <div className="text-center mb-6">
-        <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-amber block mb-1">
+        <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-cyan block mb-1">
           ADMIN PORTAL
         </span>
         <h2 className="text-xl font-bold text-white tracking-tight">
@@ -220,7 +220,7 @@ export default function AdminVerify() {
           <div className="mt-4 text-center">
             <p className="text-xs text-gray-400 font-mono">
               Missing an authorization ID?{' '}
-              <Link to="/admin-request" className="text-accent-amber hover:underline font-medium">
+              <Link to="/admin-request" className="text-accent-cyan hover:underline font-medium">
                 Request Admin Auth
               </Link>
             </p>
@@ -228,7 +228,7 @@ export default function AdminVerify() {
         </form>
       ) : (
         <form onSubmit={verifyOtp} className="space-y-5 text-center">
-          <div className="h-10 w-10 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mx-auto text-accent-amber">
+          <div className="h-10 w-10 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mx-auto text-accent-cyan">
             <KeyRound className="h-5 w-5" />
           </div>
 
@@ -287,7 +287,7 @@ export default function AdminVerify() {
       <div className="mt-8 pt-5 border-t border-[var(--border-subtle)] text-center text-xs font-mono space-y-2">
         <p className="text-gray-400">
           Need to request authorization?{' '}
-          <Link to="/admin-request" className="text-accent-amber hover:underline font-medium">
+          <Link to="/admin-request" className="text-accent-cyan hover:underline font-medium">
             Request Admin Access
           </Link>
         </p>

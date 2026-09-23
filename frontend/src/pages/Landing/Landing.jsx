@@ -19,7 +19,7 @@ export default function Landing() {
         
         {/* Intelligence System Signal Badge */}
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] mb-8">
-          <span className="status-pip status-pip-amber status-pulse" />
+          <span className="status-pip status-pip-cyan status-pulse" />
           <span className="text-[11px] font-mono tracking-widest uppercase text-gray-400">
             SEARCH-POWERED EXPOSURE INTELLIGENCE
           </span>
@@ -57,7 +57,7 @@ export default function Landing() {
         {/* Architecture Telemetry Highlights */}
         <div className="mt-16 pt-10 border-t border-[var(--border-subtle)] grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
           <div className="p-4 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-subtle)]">
-            <div className="text-[10px] font-mono uppercase tracking-widest text-accent-amber mb-1">
+            <div className="text-[10px] font-mono uppercase tracking-widest text-accent-cyan font-bold mb-1">
               SURFACE VISIBILITY
             </div>
             <div className="text-sm font-medium text-white mb-1">
@@ -69,7 +69,7 @@ export default function Landing() {
           </div>
 
           <div className="p-4 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-subtle)]">
-            <div className="text-[10px] font-mono uppercase tracking-widest text-accent-amber mb-1">
+            <div className="text-[10px] font-mono uppercase tracking-widest text-accent-cyan font-bold mb-1">
               PRIVACY SAFEGUARDS
             </div>
             <div className="text-sm font-medium text-white mb-1">
@@ -81,7 +81,7 @@ export default function Landing() {
           </div>
 
           <div className="p-4 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-subtle)]">
-            <div className="text-[10px] font-mono uppercase tracking-widest text-accent-amber mb-1">
+            <div className="text-[10px] font-mono uppercase tracking-widest text-accent-cyan font-bold mb-1">
               ACCESS BOUNDARY
             </div>
             <div className="text-sm font-medium text-white mb-1">
@@ -98,7 +98,7 @@ export default function Landing() {
       <section className="py-20 border-y border-[var(--border-primary)] bg-[var(--bg-secondary)]/60 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
-            <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-amber block mb-2">
+            <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-cyan font-bold block mb-2">
               INTELLIGENCE PIPELINE
             </span>
             <h2 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight mb-3">
@@ -113,7 +113,7 @@ export default function Landing() {
             {/* Card 1 */}
             <div className="glass-panel card-interactive p-6 rounded-xl flex flex-col justify-between">
               <div>
-                <div className="h-10 w-10 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mb-4 text-accent-amber">
+                <div className="h-10 w-10 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mb-4 text-accent-cyan">
                   <Search className="h-5 w-5" />
                 </div>
                 <div className="text-[10px] font-mono uppercase tracking-widest text-gray-500 mb-1">
@@ -131,7 +131,7 @@ export default function Landing() {
             {/* Card 2 */}
             <div className="glass-panel card-interactive p-6 rounded-xl flex flex-col justify-between">
               <div>
-                <div className="h-10 w-10 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mb-4 text-accent-amber">
+                <div className="h-10 w-10 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mb-4 text-accent-cyan">
                   <Cpu className="h-5 w-5" />
                 </div>
                 <div className="text-[10px] font-mono uppercase tracking-widest text-gray-500 mb-1">
@@ -149,7 +149,7 @@ export default function Landing() {
             {/* Card 3 */}
             <div className="glass-panel card-interactive p-6 rounded-xl flex flex-col justify-between">
               <div>
-                <div className="h-10 w-10 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mb-4 text-accent-amber">
+                <div className="h-10 w-10 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mb-4 text-accent-cyan">
                   <Lock className="h-5 w-5" />
                 </div>
                 <div className="text-[10px] font-mono uppercase tracking-widest text-gray-500 mb-1">
@@ -167,7 +167,7 @@ export default function Landing() {
             {/* Card 4 */}
             <div className="glass-panel card-interactive p-6 rounded-xl flex flex-col justify-between">
               <div>
-                <div className="h-10 w-10 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mb-4 text-accent-amber">
+                <div className="h-10 w-10 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mb-4 text-accent-cyan">
                   <ShieldAlert className="h-5 w-5" />
                 </div>
                 <div className="text-[10px] font-mono uppercase tracking-widest text-gray-500 mb-1">
@@ -189,7 +189,7 @@ export default function Landing() {
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
-            <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-amber block mb-2">
+            <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-cyan font-bold block mb-2">
               BOUNDARY CONTROL
             </span>
             <h2 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight mb-4">
@@ -219,7 +219,7 @@ export default function Landing() {
           <div className="glass-panel card-glow rounded-xl p-6 border border-glass-border">
             <div className="flex items-center justify-between pb-3 mb-4 border-b border-[var(--border-primary)]">
               <div className="flex items-center space-x-2">
-                <Terminal className="h-4 w-4 text-accent-amber" />
+                <Terminal className="h-4 w-4 text-accent-cyan" />
                 <span className="font-mono text-xs text-gray-300 tracking-wider uppercase">
                   TELEMETRY CONSOLE
                 </span>
@@ -227,7 +227,7 @@ export default function Landing() {
               <div className="flex items-center space-x-1.5">
                 <div className="w-2.5 h-2.5 rounded-full bg-gray-700" />
                 <div className="w-2.5 h-2.5 rounded-full bg-gray-700" />
-                <div className="w-2.5 h-2.5 rounded-full bg-accent-amber/60" />
+                <div className="w-2.5 h-2.5 rounded-full bg-accent-cyan/60" />
               </div>
             </div>
 
@@ -241,7 +241,7 @@ export default function Landing() {
                   <Database className="h-3.5 w-3.5 mr-2 text-gray-500" />
                   targetdomain.com
                 </span>
-                <span className="badge-technical badge-amber">
+                <span className="badge-technical badge-cyan">
                   VERIFIED
                 </span>
               </div>

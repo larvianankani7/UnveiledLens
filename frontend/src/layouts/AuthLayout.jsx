@@ -11,8 +11,8 @@ export default function AuthLayout() {
           to="/"
           className="inline-flex items-center space-x-3 group focus:outline-none"
         >
-          <div className="h-10 w-10 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center transition-all group-hover:border-[var(--accent-amber)]/50 group-hover:shadow-[0_0_15px_rgba(216,107,40,0.15)]">
-            <ScanSearch className="h-5 w-5 text-accent-amber transition-transform group-hover:scale-105" />
+          <div className="h-10 w-10 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center transition-all group-hover:border-[var(--accent-cyan)]/50 group-hover:shadow-[0_0_15px_rgba(18,168,174,0.15)]">
+            <ScanSearch className="h-5 w-5 text-accent-cyan transition-transform group-hover:scale-105" />
           </div>
           <div className="flex flex-col text-left">
             <span className="font-mono font-bold text-lg tracking-wider uppercase text-white leading-tight">

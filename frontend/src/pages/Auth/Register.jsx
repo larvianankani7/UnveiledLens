@@ -243,7 +243,7 @@ export default function Register() {
           onClick={() => switchRegistrationMode(false)}
           className={`text-sm font-medium transition-all pb-2 -mb-[13px] border-b-2 ${
             !isAdmin
-              ? 'text-accent-amber border-accent-amber drop-shadow-[0_0_8px_rgba(217,119,6,0.5)]'
+              ? 'text-accent-cyan border-accent-cyan drop-shadow-[0_0_8px_rgba(217,119,6,0.5)]'
               : 'text-gray-400 border-transparent hover:text-white'
           }`}
         >
@@ -255,7 +255,7 @@ export default function Register() {
           onClick={() => switchRegistrationMode(true)}
           className={`text-sm font-medium transition-all pb-2 -mb-[13px] border-b-2 ${
             isAdmin
-              ? 'text-accent-amber border-accent-amber drop-shadow-[0_0_8px_rgba(217,119,6,0.5)]'
+              ? 'text-accent-cyan border-accent-cyan drop-shadow-[0_0_8px_rgba(217,119,6,0.5)]'
               : 'text-gray-400 border-transparent hover:text-white'
           }`}
         >
@@ -287,7 +287,7 @@ export default function Register() {
                     onChange={(event) =>
                       updateField('adminId', event.target.value)
                     }
-                    className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-amber"
+                    className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-cyan"
                     placeholder="AUTH-XXXX-XXXX"
                   />
                 </div>
@@ -308,7 +308,7 @@ export default function Register() {
                     onChange={(event) =>
                       updateField('email', event.target.value)
                     }
-                    className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-amber"
+                    className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-cyan"
                     placeholder="security@yourdomain.com"
                   />
                 </div>
@@ -331,7 +331,7 @@ export default function Register() {
                     onChange={(event) =>
                       updateField('email', event.target.value)
                     }
-                    className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-amber"
+                    className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-cyan"
                     placeholder="security@yourdomain.com"
                   />
                 </div>
@@ -352,7 +352,7 @@ export default function Register() {
                     onChange={(event) =>
                       updateField('domain', event.target.value)
                     }
-                    className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-amber"
+                    className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-cyan"
                     placeholder="yourdomain.com"
                   />
                 </div>
@@ -373,7 +373,7 @@ export default function Register() {
                     onChange={(event) =>
                       updateField('password', event.target.value)
                     }
-                    className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-amber"
+                    className="block w-full pl-10 bg-charcoal-lighter border border-glass-border rounded-md py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-cyan"
                     placeholder="••••••••"
                   />
                 </div>
@@ -390,7 +390,7 @@ export default function Register() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center items-center gap-2 py-2 px-4 rounded-md text-sm font-medium text-white bg-accent-burnt hover:bg-accent-dark disabled:opacity-60 transition-colors glow-amber"
+            className="w-full flex justify-center items-center gap-2 py-2 px-4 rounded-md text-sm font-medium text-white bg-accent-peacock hover:bg-accent-dark disabled:opacity-60 transition-colors glow-cyan"
           >
             {loading && (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -410,7 +410,7 @@ export default function Register() {
           className="space-y-6 text-center"
         >
 
-          <Mail className="h-12 w-12 text-accent-amber mx-auto mb-4" />
+          <Mail className="h-12 w-12 text-accent-cyan mx-auto mb-4" />
 
           <h3 className="text-lg font-medium text-white">
             Verify your email
@@ -434,7 +434,7 @@ export default function Register() {
                   .slice(0, 6)
               )
             }
-            className="block w-full text-center tracking-[0.5em] text-2xl bg-charcoal-lighter border border-glass-border rounded-md py-3 text-white focus:outline-none focus:ring-1 focus:ring-accent-amber"
+            className="block w-full text-center tracking-[0.5em] text-2xl bg-charcoal-lighter border border-glass-border rounded-md py-3 text-white focus:outline-none focus:ring-1 focus:ring-accent-cyan"
             placeholder="000000"
             maxLength={6}
             autoFocus
@@ -449,7 +449,7 @@ export default function Register() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center items-center gap-2 py-2 px-4 rounded-md text-sm font-medium text-white bg-accent-burnt hover:bg-accent-dark disabled:opacity-60 transition-colors glow-amber"
+            className="w-full flex justify-center items-center gap-2 py-2 px-4 rounded-md text-sm font-medium text-white bg-accent-peacock hover:bg-accent-dark disabled:opacity-60 transition-colors glow-cyan"
           >
             {loading && (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -496,7 +496,7 @@ export default function Register() {
       {step === 3 && (
         <div className="text-center py-8">
 
-          <CheckCircle2 className="h-16 w-16 text-accent-amber mx-auto mb-4" />
+          <CheckCircle2 className="h-16 w-16 text-accent-cyan mx-auto mb-4" />
 
           <h3 className="text-xl font-bold text-white">
             {isAdmin
@@ -521,7 +521,7 @@ export default function Register() {
 
             <Link
               to="/login"
-              className="font-medium text-accent-amber hover:text-accent-burnt"
+              className="font-medium text-accent-cyan hover:text-accent-peacock"
             >
               Sign In
             </Link>
@@ -532,7 +532,7 @@ export default function Register() {
 
             <Link
               to="/admin-request"
-              className="font-medium text-accent-amber hover:text-accent-burnt"
+              className="font-medium text-accent-cyan hover:text-accent-peacock"
             >
               Request Admin Access
             </Link>

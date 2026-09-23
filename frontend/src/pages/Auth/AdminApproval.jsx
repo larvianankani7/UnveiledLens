@@ -110,11 +110,11 @@ export default function AdminApproval() {
 
   return (
     <div className="text-center page-enter">
-      <div className="h-12 w-12 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mx-auto mb-3 text-accent-amber">
+      <div className="h-12 w-12 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mx-auto mb-3 text-accent-cyan">
         <ShieldCheck className="h-6 w-6" />
       </div>
 
-      <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-amber block mb-1">
+      <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-cyan block mb-1">
         PRIVILEGE ESCALATION
       </span>
 
@@ -124,7 +124,7 @@ export default function AdminApproval() {
 
       {status === 'LOADING' && (
         <div className="mt-6 flex flex-col items-center justify-center py-4">
-          <Loader2 className="h-6 w-6 animate-spin text-accent-amber mb-2" />
+          <Loader2 className="h-6 w-6 animate-spin text-accent-cyan mb-2" />
           <span className="text-xs font-mono text-gray-500">Retrieving authorization record...</span>
         </div>
       )}
@@ -139,7 +139,7 @@ export default function AdminApproval() {
           <div className="p-4 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] text-left space-y-2.5 font-mono text-xs">
             <div className="flex items-center justify-between">
               <span className="text-gray-500">REQUEST STATUS</span>
-              <span className="badge-technical badge-amber">PENDING</span>
+              <span className="badge-technical badge-cyan">PENDING</span>
             </div>
 
             <div className="flex items-center gap-2 text-gray-300">
@@ -196,8 +196,8 @@ export default function AdminApproval() {
       )}
 
       {status === 'EXPIRED' && (
-        <div className="mt-6 p-4 rounded-xl bg-amber-950/20 border border-amber-900/40 text-xs text-amber-300 font-mono flex items-center justify-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-accent-amber" />
+        <div className="mt-6 p-4 rounded-xl -cyan-950/20 border -cyan-900/40 text-xs -cyan-300 font-mono flex items-center justify-center gap-2">
+          <AlertTriangle className="h-4 w-4 text-accent-cyan" />
           <span>This approval challenge has expired.</span>
         </div>
       )}

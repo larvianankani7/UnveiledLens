@@ -281,7 +281,7 @@ function AdminDashboard() {
                             localStorage.setItem('unveiledlens-theme', newTheme);
                             setAdminTheme(newTheme);
                         }}
-                        className="admin-theme-button p-2 text-gray-400 hover:text-accent-amber transition-colors rounded-md border border-transparent hover:border-glass-border hover:bg-glass-light flex items-center justify-center"
+                        className="admin-theme-button p-2 text-gray-400 hover:text-accent-cyan transition-colors rounded-md border border-transparent hover:border-glass-border hover:bg-glass-light flex items-center justify-center"
                         title="Toggle theme"
                     >
                         {adminTheme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}

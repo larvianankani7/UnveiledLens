@@ -22,7 +22,14 @@ public class PdfReportService {
 
     private static final Logger log = LoggerFactory.getLogger(PdfReportService.class);
     private final AdminRedactionService redactionService;
+    private String redactPdfUrl(String url) {
 
+    if (url == null || url.isBlank()) {
+        return "[REDACTED]";
+    }
+
+    return "[REDACTED]";
+}
     public byte[] generateReport(AdminExposureReport report) {
 
         if (report == null) {
@@ -211,18 +218,18 @@ public class PdfReportService {
         } else {
             for (AdminExposureFinding finding : findings) {
                 appendFindingItem(
-                        html,
-                        finding.getSeverity(),
-                        finding.getCategory(),
-                        redactionService.redactUrl(finding.getUrl()),
-                        redactionService.redact(finding.getReason()),
-                        finding.getRiskLevel(),
-                        finding.isReachable(),
-                        finding.isAuthRequired(),
-                        redactionService.redactList(finding.getEvidence()),
-                        redactionService.redactList(finding.getAttackChainSignals()),
-                        redactionService.redactList(finding.getCompliance()),
-                        redactionService.redact(finding.getRemediation())
+                    html,
+                    finding.getSeverity(),
+                    finding.getCategory(),
+                    redactPdfUrl(finding.getUrl()),
+                    redactionService.redact(finding.getReason()),
+                    finding.getRiskLevel(),
+                    finding.isReachable(),
+                    finding.isAuthRequired(),
+                    redactionService.redactList(finding.getEvidence()),
+                    redactionService.redactList(finding.getAttackChainSignals()),
+                    redactionService.redactList(finding.getCompliance()),
+                    redactionService.redact(finding.getRemediation())
                 );
             }
         }

@@ -71,13 +71,13 @@ export default function AdminRequest() {
   if (submitted) {
     return (
       <div className="text-center py-6 page-enter">
-        <div className="h-12 w-12 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mx-auto mb-3 text-accent-amber">
+        <div className="h-12 w-12 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mx-auto mb-3 text-accent-cyan">
           <ShieldCheck className="h-6 w-6" />
         </div>
 
         <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] mb-3">
-          <span className="status-pip status-pip-amber status-pulse" />
-          <span className="text-[10px] font-mono tracking-widest uppercase text-accent-amber font-semibold">
+          <span className="status-pip status-pip-cyan status-pulse" />
+          <span className="text-[10px] font-mono tracking-widest uppercase text-accent-cyan font-semibold">
             STATUS: PENDING
           </span>
         </div>
@@ -87,7 +87,7 @@ export default function AdminRequest() {
         </h2>
 
         <p className="text-xs text-gray-400 mt-2 max-w-sm mx-auto leading-relaxed">
-          Your request to administer <span className="text-white font-mono">{domain}</span> has been submitted and is currently <strong className="text-accent-amber">PENDING</strong> authorization.
+          Your request to administer <span className="text-white font-mono">{domain}</span> has been submitted and is currently <strong className="text-accent-cyan">PENDING</strong> authorization.
         </p>
 
         <p className="text-xs text-gray-500 mt-2 max-w-sm mx-auto leading-relaxed">
@@ -130,7 +130,7 @@ export default function AdminRequest() {
       </Link>
 
       <div className="text-center mb-6">
-        <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-amber block mb-1">
+        <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-cyan block mb-1">
           ELEVATED PRIVILEGES
         </span>
         <h2 className="text-xl font-bold text-white tracking-tight">
@@ -203,7 +203,7 @@ export default function AdminRequest() {
       <div className="mt-8 pt-5 border-t border-[var(--border-subtle)] text-center text-xs font-mono space-y-2">
         <p className="text-gray-400">
           Already possess an Admin ID?{' '}
-          <Link to="/admin-verify" className="text-accent-amber hover:underline font-medium">
+          <Link to="/admin-verify" className="text-accent-cyan hover:underline font-medium">
             Enter Admin Portal
           </Link>
         </p>

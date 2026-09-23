@@ -178,14 +178,23 @@ export default function SearchResults() {
       }
 
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = 'unveiledlens-user-report.pdf';
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      window.URL.revokeObjectURL(url);
+
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+
+      reader.readAsDataURL(blob);
+    });
+
+    const anchor = document.createElement('a');
+    anchor.href = dataUrl;
+    anchor.download = 'unveiledlens-user-report.pdf';
+
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
     } catch (err) {
       setError(err.message || 'Unable to generate PDF report.');
     } finally {
@@ -234,7 +243,7 @@ export default function SearchResults() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 pb-6 border-b border-[var(--border-subtle)]">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="status-pip status-pip-amber" />
+            <span className="status-pip status-pip-cyan" />
             <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-gray-500">
               SECURITY TELEMETRY
             </span>
@@ -270,7 +279,7 @@ export default function SearchResults() {
           </div>
         </div>
 
-        <div className="hidden sm:flex h-10 w-10 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] items-center justify-center text-accent-amber">
+        <div className="hidden sm:flex h-10 w-10 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] items-center justify-center text-accent-cyan">
           <ShieldCheck className="h-5 w-5" />
         </div>
       </div>
@@ -323,16 +332,16 @@ export default function SearchResults() {
         <div className="glass-panel rounded-2xl border border-[var(--border-primary)] p-10 mb-8 text-center relative overflow-hidden">
           {/* Subtle radar circle */}
           <div className="relative mx-auto w-24 h-24 mb-6 flex items-center justify-center">
-            <div className="absolute inset-0 rounded-full border border-accent-amber/20 animate-ping" />
-            <div className="absolute inset-2 rounded-full border border-accent-amber/30 animate-pulse" />
-            <div className="h-14 w-14 rounded-full bg-[var(--bg-surface-soft)] border border-accent-amber/50 flex items-center justify-center text-accent-amber shadow-[0_0_20px_rgba(216,107,40,0.2)]">
+            <div className="absolute inset-0 rounded-full border border-accent-cyan/20 animate-ping" />
+            <div className="absolute inset-2 rounded-full border border-accent-cyan/30 animate-pulse" />
+            <div className="h-14 w-14 rounded-full bg-[var(--bg-surface-soft)] border border-accent-cyan/50 flex items-center justify-center text-accent-cyan shadow-[0_0_20px_rgba(18,168,174,0.2)]">
               <Radar className="h-7 w-7 animate-spin" style={{ animationDuration: '4s' }} />
             </div>
           </div>
 
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] mb-3">
-            <span className="status-pip status-pip-amber status-pulse" />
-            <span className="font-mono text-xs text-accent-amber tracking-widest uppercase">
+            <span className="status-pip status-pip-cyan status-pulse" />
+            <span className="font-mono text-xs text-accent-cyan tracking-widest uppercase">
               {SCAN_STAGES[scanStageIndex]}
             </span>
           </div>
@@ -361,7 +370,7 @@ export default function SearchResults() {
                     {report.exposureLevel === 'NO_SIGNIFICANT_SIGNALS' ? (
                       <CheckCircle className="h-6 w-6 text-emerald-400" />
                     ) : (
-                      <Activity className="h-6 w-6 text-accent-amber" />
+                      <Activity className="h-6 w-6 text-accent-cyan" />
                     )}
                     <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
                       {getExposureLabel()}
@@ -375,9 +384,9 @@ export default function SearchResults() {
                     <button
                       onClick={handlePdfDownload}
                       disabled={isPdfLoading}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-glass-border bg-[var(--bg-surface-soft)] text-gray-300 hover:text-white hover:border-accent-amber/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-glass-border bg-[var(--bg-surface-soft)] text-gray-300 hover:text-white hover:border-accent-cyan/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <FileText className="h-4 w-4 text-accent-amber" />
+                      <FileText className="h-4 w-4 text-accent-cyan" />
                       <span className="text-xs font-mono uppercase tracking-wider">{isPdfLoading ? 'Generating PDF...' : 'Export PDF'}</span>
                     </button>
                   </div>
@@ -440,7 +449,7 @@ export default function SearchResults() {
           {/* Privacy Note */}
           <div className="glass-panel rounded-xl p-5 border border-glass-border">
             <div className="flex items-start gap-3.5">
-              <div className="h-8 w-8 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center shrink-0 text-accent-amber">
+              <div className="h-8 w-8 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center shrink-0 text-accent-cyan">
                 <ShieldCheck className="h-4 w-4" />
               </div>
               <div>
@@ -468,7 +477,7 @@ export default function SearchResults() {
       {/* Empty State */}
       {!report && !isScanning && !error && (
         <div className="glass-panel rounded-xl p-12 text-center">
-          <div className="mx-auto h-12 w-12 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mb-4 text-accent-amber">
+          <div className="mx-auto h-12 w-12 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mb-4 text-accent-cyan">
             <ShieldCheck className="h-6 w-6" />
           </div>
           <h2 className="text-base font-semibold text-white">

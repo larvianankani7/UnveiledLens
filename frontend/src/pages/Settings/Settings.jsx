@@ -174,7 +174,7 @@ export default function Settings() {
     return (
       <div className="flex-1 flex items-center justify-center px-6 py-20">
         <div className="text-center">
-          <div className="mx-auto h-8 w-8 border-2 border-accent-burnt/30 border-t-accent-burnt rounded-full animate-spin" />
+          <div className="mx-auto h-8 w-8 border-2 border-accent-peacock/30 border-t-accent-peacock rounded-full animate-spin" />
           <p className="text-xs font-mono text-gray-500 mt-4 uppercase tracking-widest">
             Loading settings...
           </p>
@@ -197,7 +197,7 @@ export default function Settings() {
 
       {/* Header */}
       <div className="flex items-center gap-3.5 mb-8 pb-6 border-b border-[var(--border-subtle)]">
-        <div className="h-10 w-10 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center text-accent-amber">
+        <div className="h-10 w-10 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center text-accent-cyan">
           <SettingsIcon className="h-5 w-5" />
         </div>
         <div>
@@ -229,7 +229,7 @@ export default function Settings() {
         {/* Profile Details Panel */}
         <section className="glass-panel card-glow rounded-xl overflow-hidden">
           <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center gap-2.5">
-            <User className="h-4 w-4 text-accent-amber" />
+            <User className="h-4 w-4 text-accent-cyan" />
             <h2 className="text-sm font-semibold text-white uppercase tracking-wider font-mono">
               Profile & Verified Scope
             </h2>
@@ -307,7 +307,7 @@ export default function Settings() {
                         setSuccess('');
                         setEditingUsername(true);
                       }}
-                      className="p-1 rounded text-gray-500 hover:text-accent-amber hover:bg-glass-light transition-colors"
+                      className="p-1 rounded text-gray-500 hover:text-accent-cyan hover:bg-glass-light transition-colors"
                       title="Edit username"
                     >
                       <Pencil className="h-3.5 w-3.5" />
@@ -327,7 +327,7 @@ export default function Settings() {
                 <span className="text-[10px] font-mono uppercase tracking-widest text-gray-500 block">
                   AUTHORIZATION ROLE
                 </span>
-                <span className="badge-technical badge-amber mt-1">
+                <span className="badge-technical badge-cyan mt-1">
                   {profile?.role === 'ROLE_ADMIN' ? 'ADMIN' : 'USER'}
                 </span>
               </div>
@@ -348,7 +348,7 @@ export default function Settings() {
         {/* Appearance Panel */}
         <section className="glass-panel card-glow rounded-xl overflow-hidden">
           <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center gap-2.5">
-            <Sun className="h-4 w-4 text-accent-amber" />
+            <Sun className="h-4 w-4 text-accent-cyan" />
             <h2 className="text-sm font-semibold text-white uppercase tracking-wider font-mono">
               Appearance & Theme
             </h2>
@@ -356,7 +356,7 @@ export default function Settings() {
 
           <div className="p-6 flex items-center justify-between">
             <div className="flex items-center gap-3.5">
-              <div className="h-9 w-9 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center text-accent-amber">
+              <div className="h-9 w-9 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center text-accent-cyan">
                 {theme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
               </div>
               <div>
@@ -382,7 +382,7 @@ export default function Settings() {
         {/* Security Info Panel */}
         <section className="glass-panel rounded-xl p-5 border border-glass-border">
           <div className="flex items-start gap-3.5">
-            <div className="h-8 w-8 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center shrink-0 text-accent-amber">
+            <div className="h-8 w-8 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center shrink-0 text-accent-cyan">
               <ShieldCheck className="h-4 w-4" />
             </div>
             <div>

@@ -24,7 +24,7 @@ function App() {
     }, []);
 
     return (
-        <div className="relative min-h-screen selection:bg-[#c65a1e] selection:text-white">
+        <div className="relative min-h-screen selection:bg-[#06483F] selection:text-white">
             <CyberBackground />
             <Routes>
                 <Route element={<MainLayout />}>
