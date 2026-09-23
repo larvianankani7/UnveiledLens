@@ -10,5 +10,9 @@ export default defineConfig({
   ],
   server: {
     port: 3000,
+    host: true,
+    allowedHosts: [
+    'identify-excel-bind-language.trycloudflare.com'
+  ]
   }
 });
