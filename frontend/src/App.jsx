@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 import CyberBackground from './components/CyberBackground.jsx';
+import IntroExperience from './components/Intro/IntroExperience.jsx';
 import MainLayout from './layouts/MainLayout.jsx';
 import AuthLayout from './layouts/AuthLayout.jsx';
 
@@ -25,6 +26,7 @@ function App() {
 
     return (
         <div className="relative min-h-screen selection:bg-[#06483F] selection:text-white">
+            <IntroExperience />
             <CyberBackground />
             <Routes>
                 <Route element={<MainLayout />}>

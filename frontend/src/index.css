@@ -1376,6 +1376,82 @@ html[data-theme="light"] .admin-finding-card {
 }
 
 /* =========================================================
+   INTRO EXPERIENCE & ANIMATED PEACOCK START BUTTON
+========================================================= */
+
+@keyframes introGradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes introButtonGlow {
+  0%, 100% {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6),
+                0 0 20px rgba(6, 72, 63, 0.45),
+                0 0 35px rgba(7, 84, 90, 0.2),
+                inset 0 0 14px rgba(6, 72, 63, 0.35);
+    border-color: rgba(18, 168, 174, 0.4);
+  }
+  50% {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.7),
+                0 0 28px rgba(6, 72, 63, 0.75),
+                0 0 50px rgba(7, 84, 90, 0.35),
+                inset 0 0 20px rgba(7, 84, 90, 0.5);
+    border-color: rgba(18, 168, 174, 0.7);
+  }
+}
+
+.btn-intro-start {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 2.25rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background-color: #030605;
+  background-image: linear-gradient(
+    135deg,
+    #020404 0%,
+    #06483F 28%,
+    #031815 50%,
+    #083F45 75%,
+    #020404 100%
+  );
+  background-size: 260% 260%;
+  animation: introGradientFlow 5s ease infinite, introButtonGlow 3s ease-in-out infinite;
+  border: 1px solid rgba(18, 168, 174, 0.45);
+  border-radius: 9999px;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              letter-spacing 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-intro-start:hover {
+  transform: translateY(-1.5px) scale(1.02);
+  letter-spacing: 0.26em;
+  border-color: rgba(18, 168, 174, 0.9);
+}
+
+.btn-intro-start:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* =========================================================
    ACCESSIBILITY: PREFERS-REDUCED-MOTION
 ========================================================= */
 
