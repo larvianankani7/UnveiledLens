@@ -12,7 +12,8 @@ export default defineConfig({
     port: 3000,
     host: true,
     allowedHosts: [
-    'identify-excel-bind-language.trycloudflare.com'
+    'identify-excel-bind-language.trycloudflare.com',
+    'workshop-upgrades-revenues-recorders.trycloudflare.com'
   ]
   }
 });

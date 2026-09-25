@@ -42,7 +42,7 @@ ollama:
 
 admin:
   approval-email: ${ADMIN_APPROVAL_EMAIL}
-  approval-base-url: https://identify-excel-bind-language.trycloudflare.com/admin-approval
+  approval-base-url: http://localhost:3000/admin-approval
   request-expiration: 86400000
   authorization-expiration: 2592000000
   

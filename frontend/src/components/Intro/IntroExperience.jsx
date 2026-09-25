@@ -52,8 +52,8 @@ export default function IntroExperience({ onFinish }) {
         onTimeUpdate={evaluateTime}
         onEnded={evaluateTime}
       >
-        {/* START Button anchored in the lower composition area */}
-        <div className="absolute bottom-[13%] sm:bottom-[15%] left-0 right-0 flex justify-center items-center z-10 pointer-events-none">
+        {/* START Button centered horizontally and vertically */}
+        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
           <StartButton show={showStart} onClick={handleStart} />
         </div>
       </IntroVideo>

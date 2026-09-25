@@ -89,7 +89,7 @@ EMAIL:
 
 * EmailService abstraction
 * Real Gmail test identity:
-  larvianankani11@gmail.com
+  lol05lol26@gmail.com
 * Keep this configured for real OTP testing.
 * Do NOT show it anywhere as demo credentials.
 * Do NOT prefill it in the frontend.
@@ -237,7 +237,7 @@ USER: Working email + Create password + Domain. Flow: -> validation -> consisten
 DNS FALLBACK: If email OTP fails -> display DNS TXT instructions -> user adds TXT -> verify DNS -> success -> Login.
 
 EMAIL/DOMAIN CONSISTENCY: Normalize domain (e.g., example.com). Ensure email domain corresponds.
-TEST EXCEPTION: larvianankani11@gmail.com must be allowed through consistency gate (configurable via unveiledlens.verification.test-email). Still requires real OTP and domain ownership verification.
+TEST EXCEPTION: lol05lol26@gmail.com must be allowed through consistency gate (configurable via unveiledlens.verification.test-email). Still requires real OTP and domain ownership verification.
 
 ADMIN: Phone number + Create password + Domain. Flow: -> validation -> real phone OTP -> verify OTP -> ROLE_ADMIN -> success flash -> Login.
 ADMIN must use real phone OTP (no email OTP, no DNS).
