@@ -105,6 +105,11 @@ export default function SearchResults() {
 
       const data = await response.json().catch(() => null);
 
+      if (response.status === 202) {
+        setError(data?.message || 'Your scan is still running in the background. Try again shortly.');
+        return;
+      }
+
       if (response.status === 401) {
         sessionStorage.removeItem('token');
         localStorage.removeItem('token');

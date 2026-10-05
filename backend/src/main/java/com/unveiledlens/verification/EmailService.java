@@ -14,6 +14,8 @@ public class EmailService {
 
     @Value("${admin.approval-email:}")
     private String approvalEmail;
+    @Value("${spring.mail.username:}")
+    private String senderEmail;
 
     @Value("${admin.approval-base-url:http://localhost:3000/admin-approval}")
     private String approvalBaseUrl;
@@ -27,6 +29,9 @@ public class EmailService {
                 new SimpleMailMessage();
 
         message.setTo(to);
+        if (senderEmail != null && !senderEmail.isBlank()) {
+            message.setFrom(senderEmail);
+        }
 
         message.setSubject(
                 "UnveiledLens Verification Code"

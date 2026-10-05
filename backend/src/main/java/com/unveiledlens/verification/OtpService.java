@@ -3,13 +3,10 @@ package com.unveiledlens.verification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
+import org.springframework.beans.factory.annotation.Value;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OtpService {
@@ -20,7 +17,6 @@ public class OtpService {
     private final OtpRepository otpRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
-
     private final SecureRandom secureRandom = new SecureRandom();
 
     public void generateAndSendEmailOtp(String email) {
@@ -85,8 +81,6 @@ public class OtpService {
             String target,
             String otp
     ) {
-
-        log.info("DEBUG OTP for {}: {}", target, otp);
 
         OtpVerification verification =
                 new OtpVerification();

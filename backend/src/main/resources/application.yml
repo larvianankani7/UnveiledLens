@@ -3,9 +3,12 @@ spring:
     name: UnveiledLens
 
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:unveiledlens}?useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:unveiledlens}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: ${DB_USER:root}
     password: ${DB_PASS:}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
 
   jpa:
     hibernate:
@@ -35,14 +38,27 @@ jwt:
 
 serpapi:
   key: ${SERPAPI_KEY:}
+  timeout-ms: ${SERPAPI_TIMEOUT_MS:5000}
 
 ollama:
   url: ${OLLAMA_BASE_URL:http://localhost:11434}
   model: ${OLLAMA_MODEL:llama3}
+  timeout-ms: ${OLLAMA_TIMEOUT_MS:5000}
+  max-tokens: ${OLLAMA_MAX_TOKENS:96}
+
+discovery:
+  request-wait-seconds: ${DISCOVERY_REQUEST_WAIT_SECONDS:60}
+  cache-ttl-minutes: ${DISCOVERY_CACHE_TTL_MINUTES:15}
+  cache-max-entries: ${DISCOVERY_CACHE_MAX_ENTRIES:500}
+  background-concurrency: ${DISCOVERY_BACKGROUND_CONCURRENCY:2}
+  io-concurrency: ${DISCOVERY_IO_CONCURRENCY:8}
 
 admin:
   approval-email: ${ADMIN_APPROVAL_EMAIL}
-  approval-base-url: http://localhost:3000/admin-approval
+  approval-base-url: ${ADMIN_APPROVAL_BASE_URL:http://localhost:3000/admin-approval}
   request-expiration: 86400000
   authorization-expiration: 2592000000
-  
+
+app:
+  otp:
+    log: false

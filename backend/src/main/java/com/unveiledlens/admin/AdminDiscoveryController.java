@@ -4,6 +4,7 @@ import com.unveiledlens.admin.dto.AdminExposureFinding;
 import com.unveiledlens.admin.dto.AdminExposureReport;
 import com.unveiledlens.admin.dto.AdminScanSummary;
 import com.unveiledlens.discovery.DiscoveryService;
+import com.unveiledlens.discovery.ScanCacheService;
 import com.unveiledlens.discovery.dto.ExposureFinding;
 import com.unveiledlens.discovery.dto.ExposureReport;
 import com.unveiledlens.report.PdfReportService;
@@ -22,6 +23,7 @@ import java.util.Map;
 public class AdminDiscoveryController {
 
     private final DiscoveryService discoveryService;
+    private final ScanCacheService scanCacheService;
     private final AdminRedactionService redactionService;
     private final PdfReportService pdfReportService;
 
@@ -69,7 +71,8 @@ public class AdminDiscoveryController {
             return ResponseEntity.badRequest().build();
         }
 
-        ExposureReport report = discoveryService.runAdminDiscovery(domain);
+        ExposureReport report = scanCacheService.get(domain, true)
+                .orElseGet(() -> discoveryService.runAdminDiscovery(domain));
         AdminExposureReport adminReport = toAdminReport(report);
         byte[] pdf = pdfReportService.generateReport(adminReport);
 

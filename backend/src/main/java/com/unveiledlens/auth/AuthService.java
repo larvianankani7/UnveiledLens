@@ -183,7 +183,7 @@ public class AuthService {
         try {
             otpService.generateAndSendEmailOtp(account.getEmail());
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to send login OTP.");
+            throw new IllegalStateException("Failed to send login OTP.",e);
         }
 
         auditService.log(

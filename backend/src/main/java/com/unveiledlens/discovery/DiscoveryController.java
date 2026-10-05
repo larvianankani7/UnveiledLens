@@ -26,6 +26,7 @@ import java.util.Map;
 public class DiscoveryController {
 
     private final DiscoveryService discoveryService;
+    private final ScanCacheService scanCacheService;
     private final UserRepository userRepository;
     private final PdfReportService pdfReportService;
 
@@ -52,7 +53,8 @@ public class DiscoveryController {
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).build();
         }
 
-        ExposureReport detailedReport = discoveryService.runDiscovery(domain);
+        ExposureReport detailedReport = scanCacheService.get(domain, false)
+                .orElseGet(() -> discoveryService.runDiscovery(domain));
         UserExposureReport userReport = buildUserReport(detailedReport);
 
         byte[] pdf = pdfReportService.generateUserReport(userReport);

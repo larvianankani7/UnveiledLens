@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.ArrayList;
@@ -16,14 +17,21 @@ import java.util.List;
 @Service
 public class SerpApiService {
 
-    @Value("${serpapi.key:}")
-    private String apiKey;
+    private final String apiKey;
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
-    private final RestTemplate restTemplate =
-            new RestTemplate();
-
-    private final ObjectMapper objectMapper =
-            new ObjectMapper();
+    public SerpApiService(
+            ObjectMapper objectMapper,
+            @Value("${serpapi.key:}") String apiKey,
+            @Value("${serpapi.timeout-ms:5000}") int timeoutMillis) {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(timeoutMillis);
+        factory.setReadTimeout(timeoutMillis);
+        this.restTemplate = new RestTemplate(factory);
+        this.objectMapper = objectMapper;
+        this.apiKey = apiKey;
+    }
 
     public List<SerpApiResult> search(
             String query

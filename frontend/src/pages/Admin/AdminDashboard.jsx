@@ -99,6 +99,13 @@ function AdminDashboard() {
             const data =
                 await response.json();
 
+            if (response.status === 202) {
+                throw new Error(
+                    data?.message ||
+                    'The scan is still running in the background. Try again shortly.'
+                );
+            }
+
             if (!response.ok) {
 
                 throw new Error(

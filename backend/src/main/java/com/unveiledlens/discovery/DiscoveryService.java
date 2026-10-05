@@ -15,14 +15,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
@@ -50,16 +55,17 @@ public class DiscoveryService {
     private final DpdpMappingService dpdpMappingService;
 
     private final RemediationTemplateService remediationTemplateService;
+    private final ScanCacheService scanCacheService;
+    @Qualifier("discoveryIoExecutor")
+    private final Executor discoveryIoExecutor;
 
 
     public ExposureReport runDiscovery(
             String domain
     ) {
 
-        return scan(
-                domain,
-                false
-        );
+        String normalizedDomain = normalizeDomain(domain);
+        return scanCacheService.getOrStart(normalizedDomain, false, () -> scan(normalizedDomain, false));
     }
 
 
@@ -67,10 +73,8 @@ public class DiscoveryService {
             String domain
     ) {
 
-        return scan(
-                domain,
-                true
-        );
+        String normalizedDomain = normalizeDomain(domain);
+        return scanCacheService.getOrStart(normalizedDomain, true, () -> scan(normalizedDomain, true));
     }
 
 
@@ -120,12 +124,14 @@ public class DiscoveryService {
          * -----------------------------------------------------
          */
 
-        for (String query : queries) {
+        List<CompletableFuture<List<SerpApiResult>>> queryFutures = queries.stream()
+                .map(query -> CompletableFuture.supplyAsync(() -> searchOrchestrator.search(query), discoveryIoExecutor)
+                        .exceptionally(error -> List.of()))
+                .toList();
 
-            List<SerpApiResult> results =
-                    searchOrchestrator.search(
-                            query
-                    );
+        for (int queryIndex = 0; queryIndex < queries.size(); queryIndex++) {
+            String query = queries.get(queryIndex);
+            List<SerpApiResult> results = queryFutures.get(queryIndex).join();
 
             if (results == null) {
 
@@ -185,22 +191,25 @@ public class DiscoveryService {
          * -----------------------------------------------------
          */
 
-        List<ExposureFinding> findings =
-                new ArrayList<>();
+        Map<String, Integer> discoveryOrder = new LinkedHashMap<>();
+        int resultIndex = 0;
+        for (String url : uniqueResults.keySet()) discoveryOrder.put(url, resultIndex++);
+        List<ExposureFinding> findings = Collections.synchronizedList(new ArrayList<>());
 
-        int domainRelevant = 0;
+        AtomicInteger domainRelevant = new AtomicInteger();
 
-        int filteredOut = 0;
+        AtomicInteger filteredOut = new AtomicInteger();
 
-        int reachableFindings = 0;
+        AtomicInteger reachableFindings = new AtomicInteger();
 
-        int apiSurfaces = 0;
+        AtomicInteger apiSurfaces = new AtomicInteger();
 
-        int cloudStorageReferences = 0;
+        AtomicInteger cloudStorageReferences = new AtomicInteger();
 
-        int configurationSignals = 0;
+        AtomicInteger configurationSignals = new AtomicInteger();
 
-        int graphqlSurfaces = 0;
+        AtomicInteger graphqlSurfaces = new AtomicInteger();
+        List<CompletableFuture<Void>> analysisFutures = new ArrayList<>();
 
 
         /*
@@ -209,10 +218,8 @@ public class DiscoveryService {
          * -----------------------------------------------------
          */
 
-        for (
-                SerpApiResult result :
-                uniqueResults.values()
-        ) {
+        for (SerpApiResult result : uniqueResults.values()) {
+            analysisFutures.add(CompletableFuture.runAsync(() -> {
 
             String url =
                     normalizeUrl(
@@ -220,7 +227,7 @@ public class DiscoveryService {
                     );
 
             if (url == null) {
-                continue;
+                return;
             }
 
 
@@ -236,12 +243,12 @@ public class DiscoveryService {
 
             if (!domainMatch) {
 
-                filteredOut++;
+                filteredOut.incrementAndGet();
 
-                continue;
+                return;
             }
 
-            domainRelevant++;
+            domainRelevant.incrementAndGet();
 
 
             /*
@@ -262,9 +269,9 @@ public class DiscoveryService {
 
                 if (!relevant) {
 
-                    filteredOut++;
+                    filteredOut.incrementAndGet();
 
-                    continue;
+                    return;
                 }
             }
 
@@ -285,9 +292,9 @@ public class DiscoveryService {
                     || "NONE".equals(category)
             ) {
 
-                filteredOut++;
+                filteredOut.incrementAndGet();
 
-                continue;
+                return;
             }
 
 
@@ -630,7 +637,7 @@ public class DiscoveryService {
 
             if (reachable) {
 
-                reachableFindings++;
+                reachableFindings.incrementAndGet();
             }
 
 
@@ -640,7 +647,7 @@ public class DiscoveryService {
                     )
             ) {
 
-                apiSurfaces++;
+                apiSurfaces.incrementAndGet();
             }
 
 
@@ -650,7 +657,7 @@ public class DiscoveryService {
                     )
             ) {
 
-                graphqlSurfaces++;
+                graphqlSurfaces.incrementAndGet();
             }
 
 
@@ -660,7 +667,7 @@ public class DiscoveryService {
                     )
             ) {
 
-                cloudStorageReferences++;
+                cloudStorageReferences.incrementAndGet();
             }
 
 
@@ -670,9 +677,13 @@ public class DiscoveryService {
                     )
             ) {
 
-                configurationSignals++;
+                configurationSignals.incrementAndGet();
             }
+            }, discoveryIoExecutor));
         }
+
+        CompletableFuture.allOf(analysisFutures.toArray(CompletableFuture[]::new)).join();
+        findings.sort(java.util.Comparator.comparingInt(finding -> discoveryOrder.getOrDefault(finding.getUrl(), Integer.MAX_VALUE)));
 
 
         /*
@@ -734,12 +745,12 @@ public class DiscoveryService {
 
         log.info(
                 "Domain relevant: {}",
-                domainRelevant
+                domainRelevant.get()
         );
 
         log.info(
                 "Filtered out: {}",
-                filteredOut
+                filteredOut.get()
         );
 
         log.info(
@@ -749,7 +760,7 @@ public class DiscoveryService {
 
         log.info(
                 "Reachable findings: {}",
-                reachableFindings
+                reachableFindings.get()
         );
 
 
@@ -772,8 +783,8 @@ public class DiscoveryService {
                         ? findings.size()
                         : Math.max(
                                 0,
-                                domainRelevant
-                                        - filteredOut
+                                domainRelevant.get()
+                                        - filteredOut.get()
                         );
 
 
@@ -789,19 +800,19 @@ public class DiscoveryService {
                                 findings.size()
                         )
                         .reachableFindings(
-                                reachableFindings
+                                reachableFindings.get()
                         )
                         .apiSurfaces(
-                                apiSurfaces
+                                apiSurfaces.get()
                         )
                         .cloudStorageReferences(
-                                cloudStorageReferences
+                                cloudStorageReferences.get()
                         )
                         .configurationSignals(
-                                configurationSignals
+                                configurationSignals.get()
                         )
                         .graphqlSurfaces(
-                                graphqlSurfaces
+                                graphqlSurfaces.get()
                         )
                         .build();
 

@@ -12,20 +12,28 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.time.Duration;
 
 @Service
-@RequiredArgsConstructor
 public class OllamaService {
-
     private final ObjectMapper objectMapper;
+    private final WebClient client;
+    private final String model;
+    private final Duration timeout;
+    private final int maxTokens;
 
-
-    @Value("${ollama.url:http://localhost:11434}")
-    private String ollamaUrl;
-
-
-    @Value("${ollama.model:llama3}")
-    private String model;
+    public OllamaService(
+            ObjectMapper objectMapper,
+            @Value("${ollama.url:http://localhost:11434}") String ollamaUrl,
+            @Value("${ollama.model:llama3}") String model,
+            @Value("${ollama.timeout-ms:5000}") long timeoutMillis,
+            @Value("${ollama.max-tokens:96}") int maxTokens) {
+        this.objectMapper = objectMapper;
+        this.client = WebClient.builder().baseUrl(ollamaUrl).build();
+        this.model = model;
+        this.timeout = Duration.ofMillis(timeoutMillis);
+        this.maxTokens = maxTokens;
+    }
 
 
     public String generateInterpretation(
@@ -56,11 +64,6 @@ public class OllamaService {
 
         try {
 
-            WebClient client =
-                    WebClient.builder()
-                            .baseUrl(ollamaUrl)
-                            .build();
-
             Map<String, Object> request =
                     new HashMap<>();
 
@@ -79,6 +82,8 @@ public class OllamaService {
                     false
             );
 
+            request.put("options", Map.of("num_predict", maxTokens, "temperature", 0));
+
             String response =
                     client.post()
                             .uri("/api/generate")
@@ -90,7 +95,7 @@ public class OllamaService {
                             .bodyToMono(
                                     String.class
                             )
-                            .block();
+                            .block(timeout);
 
             if (response == null
                     || response.isBlank()) {
@@ -139,31 +144,11 @@ public class OllamaService {
     ) {
 
         return """
-                You are the security analysis component of UnveiledLens.
-
-                Interpret the observed security exposure signal below.
-
-                Rules:
-                - Do not claim exploitation.
-                - Do not invent vulnerabilities.
-                - Do not suggest authentication bypass.
-                - Do not provide attack instructions.
-                - Do not invent facts.
-                - Keep the explanation concise.
-                - Explain why the observation may matter.
-                - Clearly distinguish observed facts from implications.
-
-                Category:
-                %s
-
-                Authentication required:
-                %s
-
-                Observed evidence:
-                %s
-
-                Return only a concise security interpretation
-                suitable for an enterprise security report.
+                Write one concise, factual security-report interpretation.
+                Do not claim exploitation, invent facts, suggest bypasses, or give attack instructions.
+                Category: %s
+                Authentication required: %s
+                Evidence: %s
                 """.formatted(
                 safe(category),
                 authRequired,

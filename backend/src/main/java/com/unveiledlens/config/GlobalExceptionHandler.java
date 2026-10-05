@@ -6,11 +6,17 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import com.unveiledlens.discovery.ScanQueuedException;
 
 import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ScanQueuedException.class)
+    public ResponseEntity<?> handleScanQueuedException(ScanQueuedException ex) {
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(Map.of("status", "PROCESSING", "message", ex.getMessage()));
+    }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<?> handleIllegalArgumentException(IllegalArgumentException ex) {
