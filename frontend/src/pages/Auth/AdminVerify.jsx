@@ -7,27 +7,20 @@ import {
   CheckCircle2,
   ArrowLeft
 } from 'lucide-react';
-
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-
 export default function AdminVerify() {
   const [step, setStep] = useState(1);
-
   const [email, setEmail] = useState('');
   const [adminId, setAdminId] = useState('');
   const [otp, setOtp] = useState('');
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
   const navigate = useNavigate();
-
   const verifyAuthorization = async (event) => {
     event.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/admin-access/verify-id`,
@@ -42,9 +35,7 @@ export default function AdminVerify() {
           })
         }
       );
-
       const data = await response.json().catch(() => null);
-
       if (!response.ok) {
         throw new Error(
           data?.message ||
@@ -52,7 +43,6 @@ export default function AdminVerify() {
           'Invalid or expired Admin Authorization ID.'
         );
       }
-
       setStep(2);
     } catch (err) {
       setError(
@@ -64,18 +54,14 @@ export default function AdminVerify() {
       setLoading(false);
     }
   };
-
   const verifyOtp = async (event) => {
     event.preventDefault();
-
     if (otp.length !== 6) {
       setError('Enter the 6-digit verification code.');
       return;
     }
-
     setError('');
     setLoading(true);
-
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/admin-access/verify-otp`,
@@ -90,9 +76,7 @@ export default function AdminVerify() {
           })
         }
       );
-
       const data = await response.json().catch(() => null);
-
       if (!response.ok) {
         throw new Error(
           data?.message ||
@@ -100,12 +84,10 @@ export default function AdminVerify() {
           'Invalid or expired OTP.'
         );
       }
-
       sessionStorage.setItem('token', data.token);
       sessionStorage.setItem('role', 'ROLE_ADMIN');
       localStorage.removeItem('token');
       localStorage.removeItem('role');
-
       setStep(3);
       setTimeout(() => {
         navigate('/admin');
@@ -120,7 +102,6 @@ export default function AdminVerify() {
       setLoading(false);
     }
   };
-
   if (step === 3) {
     return (
       <div className="text-center py-6 page-enter">
@@ -134,18 +115,16 @@ export default function AdminVerify() {
       </div>
     );
   }
-
   return (
     <div className="page-enter">
-      <Link 
-        to="/login" 
+      <Link
+        to="/login"
         className="inline-flex items-center gap-1.5 text-xs font-mono text-gray-500 hover:text-white transition-colors mb-6 group"
         title="Back to Login"
       >
         <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" />
         <span>Return to Login</span>
       </Link>
-
       <div className="text-center mb-6">
         <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-cyan block mb-1">
           ADMIN PORTAL
@@ -159,7 +138,6 @@ export default function AdminVerify() {
             : `Enter the 6-digit verification code dispatched to ${email}`}
         </p>
       </div>
-
       {step === 1 ? (
         <form onSubmit={verifyAuthorization} className="space-y-4">
           <div>
@@ -178,7 +156,6 @@ export default function AdminVerify() {
               />
             </div>
           </div>
-
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-gray-400 mb-1.5">
               Admin Authorization ID
@@ -195,13 +172,11 @@ export default function AdminVerify() {
               />
             </div>
           </div>
-
           {error && (
             <div className="rounded-lg border border-red-900/60 bg-red-950/30 px-3.5 py-2.5 text-xs text-red-300">
               {error}
             </div>
           )}
-
           <button
             type="submit"
             disabled={loading}
@@ -216,7 +191,6 @@ export default function AdminVerify() {
               'Verify Admin Auth'
             )}
           </button>
-
           <div className="mt-4 text-center">
             <p className="text-xs text-gray-400 font-mono">
               Missing an authorization ID?{' '}
@@ -231,7 +205,6 @@ export default function AdminVerify() {
           <div className="h-10 w-10 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mx-auto text-accent-cyan">
             <KeyRound className="h-5 w-5" />
           </div>
-
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-gray-400 mb-2">
               One-Time Passcode (OTP)
@@ -249,13 +222,11 @@ export default function AdminVerify() {
               autoFocus
             />
           </div>
-
           {error && (
             <div className="rounded-lg border border-red-900/60 bg-red-950/30 px-3.5 py-2.5 text-xs text-red-300">
               {error}
             </div>
           )}
-
           <button
             type="submit"
             disabled={loading}
@@ -270,7 +241,6 @@ export default function AdminVerify() {
               'Verify OTP'
             )}
           </button>
-
           <button
             type="button"
             onClick={() => {
@@ -283,7 +253,6 @@ export default function AdminVerify() {
           </button>
         </form>
       )}
-
       <div className="mt-8 pt-5 border-t border-[var(--border-subtle)] text-center text-xs font-mono space-y-2">
         <p className="text-gray-400">
           Need to request authorization?{' '}

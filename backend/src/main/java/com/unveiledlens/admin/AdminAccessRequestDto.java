@@ -8,7 +8,6 @@ public class AdminAccessRequestDto {
     @NotBlank
     @Email
     private String email;
-
     @NotBlank
     private String domain;
 }

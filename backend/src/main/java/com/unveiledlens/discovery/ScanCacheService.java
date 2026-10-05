@@ -1,10 +1,8 @@
 package com.unveiledlens.discovery;
-
 import com.unveiledlens.discovery.dto.ExposureReport;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
@@ -24,18 +22,12 @@ public class ScanCacheService {
     private final long ttlMillis;
     private final long waitMillis;
     private final int maxEntries;
-
-    public ScanCacheService(
-            @Qualifier("discoveryCoordinatorExecutor") Executor coordinator,
-            @Value("${discovery.cache-ttl-minutes:15}") long ttlMinutes,
-            @Value("${discovery.request-wait-seconds:60}") long waitSeconds,
-            @Value("${discovery.cache-max-entries:500}") int maxEntries) {
+    public ScanCacheService(@Qualifier("discoveryCoordinatorExecutor") Executor coordinator, @Value("${discovery.cache-ttl-minutes:15}") long ttlMinutes, @Value("${discovery.request-wait-seconds:60}") long waitSeconds, @Value("${discovery.cache-max-entries:500}") int maxEntries) {
         this.coordinator = coordinator;
         this.ttlMillis = TimeUnit.MINUTES.toMillis(ttlMinutes);
         this.waitMillis = TimeUnit.SECONDS.toMillis(waitSeconds);
         this.maxEntries = maxEntries;
     }
-
     public ExposureReport getOrStart(String domain, boolean adminMode, Supplier<ExposureReport> loader) {
         String key = key(domain, adminMode);
         ExposureReport cached = getCached(key);
@@ -55,11 +47,9 @@ public class ScanCacheService {
             throw unwrap(exception);
         }
     }
-
     public Optional<ExposureReport> get(String domain, boolean adminMode) {
         return Optional.ofNullable(getCached(key(domain, adminMode)));
     }
-
     private void start(String key, CompletableFuture<ExposureReport> target, Supplier<ExposureReport> loader) {
         CompletableFuture.supplyAsync(loader, coordinator).whenComplete((report, error) -> {
             if (error == null && report != null) {
@@ -71,7 +61,6 @@ public class ScanCacheService {
             inFlight.remove(key, target);
         });
     }
-
     private ExposureReport getCached(String key) {
         CachedReport entry = completed.get(key);
         if (entry == null) return null;
@@ -81,7 +70,6 @@ public class ScanCacheService {
         }
         return entry.report;
     }
-
     private void put(String key, ExposureReport report) {
         completed.entrySet().removeIf(entry -> entry.getValue().expiresAtMillis <= System.currentTimeMillis());
         if (completed.size() >= maxEntries && !completed.containsKey(key)) {
@@ -90,17 +78,14 @@ public class ScanCacheService {
         }
         completed.put(key, new CachedReport(report, System.currentTimeMillis() + ttlMillis));
     }
-
     private String key(String domain, boolean adminMode) {
         return (adminMode ? "admin:" : "user:") + domain.trim().toLowerCase();
     }
-
     private RuntimeException unwrap(Exception exception) {
         Throwable cause = exception.getCause();
         if (cause instanceof CompletionException completion && completion.getCause() != null) cause = completion.getCause();
         if (cause instanceof RuntimeException runtime) return runtime;
         return new IllegalStateException("Scan failed.", cause == null ? exception : cause);
     }
-
     private record CachedReport(ExposureReport report, long expiresAtMillis) { }
 }

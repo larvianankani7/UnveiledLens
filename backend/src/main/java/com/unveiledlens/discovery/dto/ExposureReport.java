@@ -1,5 +1,4 @@
 package com.unveiledlens.discovery.dto;
-
 import lombok.Builder;
 import lombok.Data;
 import java.util.List;

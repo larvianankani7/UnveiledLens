@@ -1,7 +1,6 @@
 import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import { ScanSearch } from 'lucide-react';
-
 export default function AuthLayout() {
   return (
     <div className="min-h-screen flex flex-col justify-between py-10 px-4 sm:px-6 lg:px-8 relative z-10 page-enter">
@@ -24,15 +23,11 @@ export default function AuthLayout() {
           </div>
         </Link>
       </div>
-
-      {/* Auth Card Container */}
       <div className="my-auto sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <div className="glass-panel card-glow py-8 px-5 sm:px-9 rounded-2xl relative">
           <Outlet />
         </div>
       </div>
-
-      {/* Minimal Footer */}
       <div className="text-center font-mono text-[11px] text-gray-600 mt-8 relative z-10">
         <span>© {new Date().getFullYear()} UNVEILEDLENS — EXTERNAL EXPOSURE INTELLIGENCE</span>
       </div>

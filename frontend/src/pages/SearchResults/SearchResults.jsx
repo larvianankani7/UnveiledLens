@@ -7,10 +7,7 @@ import {
   CheckCircle,
   Radar
 } from 'lucide-react';
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 const SCAN_STAGES = [
   'VERIFYING DOMAIN IDENTITY',
   'DISCOVERING PUBLIC SIGNALS',
@@ -18,7 +15,6 @@ const SCAN_STAGES = [
   'VALIDATING EXPOSURE BOUNDARY',
   'GENERATING INTELLIGENCE OVERVIEW'
 ];
-
 export default function SearchResults() {
   const [userDomain, setUserDomain] = useState('');
   const [isScanning, setIsScanning] = useState(false);
@@ -26,33 +22,25 @@ export default function SearchResults() {
   const [report, setReport] = useState(null);
   const [error, setError] = useState(null);
   const [isPdfLoading, setIsPdfLoading] = useState(false);
-
-  // Fetch the authenticated user's verified domain from backend profile
   useEffect(() => {
     const fetchProfile = async () => {
-      const token =
-        sessionStorage.getItem('token') ||
-        localStorage.getItem('token');
-
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       if (!token) {
         window.location.href = '/login';
         return;
       }
-
       try {
         const response = await fetch(`${API_BASE_URL}/api/user/profile`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
-
         if (response.status === 401) {
           sessionStorage.removeItem('token');
           localStorage.removeItem('token');
           window.location.href = '/login';
           return;
         }
-
         if (response.ok) {
           const data = await response.json();
           setUserDomain(data.domain || '');
@@ -64,11 +52,8 @@ export default function SearchResults() {
         setError('Network error while connecting to server.');
       }
     };
-
     fetchProfile();
   }, []);
-
-  // Multi-phase visual scan progress stages
   useEffect(() => {
     let interval;
     if (isScanning) {
@@ -78,45 +63,34 @@ export default function SearchResults() {
     }
     return () => clearInterval(interval);
   }, [isScanning]);
-
-  // Execute authenticated domain discovery scan
   const handleScan = async (event) => {
     if (event) event.preventDefault();
     setScanStageIndex(0);
     setIsScanning(true);
     setError(null);
-
     try {
-      const token =
-        sessionStorage.getItem('token') ||
-        localStorage.getItem('token');
-
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       if (!token) {
         window.location.href = '/login';
         return;
       }
-
       const response = await fetch(`${API_BASE_URL}/api/discovery/scan`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
-
       const data = await response.json().catch(() => null);
-
       if (response.status === 202) {
         setError(data?.message || 'Your scan is still running in the background. Try again shortly.');
         return;
       }
-
       if (response.status === 401) {
         sessionStorage.removeItem('token');
         localStorage.removeItem('token');
         window.location.href = '/login';
         return;
       }
-
       if (!response.ok) {
         throw new Error(
           data?.error ||
@@ -124,7 +98,6 @@ export default function SearchResults() {
           'Unable to complete the security scan.'
         );
       }
-
       setReport(data);
     } catch (err) {
       console.error('Security scan failed', err);
@@ -137,48 +110,37 @@ export default function SearchResults() {
       setIsScanning(false);
     }
   };
-
-  // Download authenticated user PDF report
   const handlePdfDownload = async () => {
     if (!report) return;
     setError(null);
     setIsPdfLoading(true);
-
     try {
-      const token =
-        sessionStorage.getItem('token') ||
-        localStorage.getItem('token');
-
+      const token = sessionStorage.getItem('token') || localStorage.getItem('token');
       if (!token) {
         window.location.href = '/login';
         return;
       }
-
       const response = await fetch(`${API_BASE_URL}/api/discovery/report/pdf`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
-
       if (response.status === 401 || response.status === 403) {
         sessionStorage.removeItem('token');
         localStorage.removeItem('token');
         window.location.href = '/login';
         return;
       }
-
       if (!response.ok) {
         let message = 'Unable to generate PDF report.';
         try {
           const data = await response.json();
           message = data.message || data.error || message;
         } catch {
-          // Response is not JSON
         }
         throw new Error(message);
       }
-
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const anchor = document.createElement('a');
@@ -194,7 +156,6 @@ export default function SearchResults() {
       setIsPdfLoading(false);
     }
   };
-
   const getExposureLabel = () => {
     if (!report) return 'Awaiting Scan';
     switch (report.exposureLevel) {
@@ -210,11 +171,9 @@ export default function SearchResults() {
         return 'Under Review';
     }
   };
-
   const getExposureDescription = () => {
     if (!report) return '';
     if (report.overview) return report.overview;
-
     switch (report.exposureLevel) {
       case 'NO_SIGNIFICANT_SIGNALS':
         return 'No significant public exposure signals were identified by the current discovery checks.';
@@ -228,11 +187,8 @@ export default function SearchResults() {
         return 'The scan identified technical resources that may deserve further security review.';
     }
   };
-
   return (
     <div className="flex-1 px-4 sm:px-6 lg:px-8 py-8 lg:py-12 max-w-4xl mx-auto w-full page-enter">
-      
-      {/* Header */}
       <div className="mb-8 pb-6 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-2 mb-2">
           <span className="status-pip status-pip-cyan" />
@@ -247,8 +203,6 @@ export default function SearchResults() {
           A privacy-conscious overview of publicly discoverable technical signals associated with your verified domain.
         </p>
       </div>
-
-      {/* Main Action Panel: Verified Domain & Scan Button */}
       <div className="glass-panel card-glow rounded-xl p-6 sm:p-7 mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
           <div>
@@ -262,7 +216,6 @@ export default function SearchResults() {
               </span>
             </div>
           </div>
-
           <button
             onClick={handleScan}
             disabled={isScanning || !userDomain}
@@ -282,8 +235,6 @@ export default function SearchResults() {
           </button>
         </div>
       </div>
-
-      {/* Error Alert */}
       {error && (
         <div className="rounded-xl border border-red-900/60 bg-red-950/30 px-5 py-4 mb-8 flex items-start gap-3 text-red-300">
           <AlertTriangle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
@@ -293,8 +244,6 @@ export default function SearchResults() {
           </div>
         </div>
       )}
-
-      {/* Scanning State */}
       {isScanning && (
         <div className="glass-panel rounded-xl border border-[var(--border-primary)] p-10 mb-8 text-center relative overflow-hidden">
           <div className="relative mx-auto w-20 h-20 mb-5 flex items-center justify-center">
@@ -304,14 +253,12 @@ export default function SearchResults() {
               <Radar className="h-6 w-6 animate-spin" style={{ animationDuration: '4s' }} />
             </div>
           </div>
-
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] mb-3">
             <span className="status-pip status-pip-cyan status-pulse" />
             <span className="font-mono text-xs text-accent-cyan tracking-widest uppercase">
               {SCAN_STAGES[scanStageIndex]}
             </span>
           </div>
-
           <h2 className="text-base font-medium text-white mb-1">
             Analyzing External Exposure
           </h2>
@@ -320,11 +267,8 @@ export default function SearchResults() {
           </p>
         </div>
       )}
-
-      {/* After Scan: Concise Vague Report */}
       {report && !isScanning && (
         <div className="glass-panel rounded-xl p-6 sm:p-8 space-y-6">
-          {/* Status & Overview */}
           <div>
             <div className="text-[10px] font-mono uppercase tracking-[0.25em] text-gray-500 mb-2">
               EXPOSURE STATUS
@@ -343,8 +287,6 @@ export default function SearchResults() {
               {getExposureDescription()}
             </p>
           </div>
-
-          {/* Small Number of Aggregate Signals */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
             <div className="p-3.5 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)]">
               <span className="text-[10px] font-mono uppercase tracking-wider text-gray-500 block">
@@ -354,7 +296,6 @@ export default function SearchResults() {
                 {report.summary?.potentialSignals ?? 0}
               </span>
             </div>
-
             <div className="p-3.5 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)]">
               <span className="text-[10px] font-mono uppercase tracking-wider text-gray-500 block">
                 Public Discoveries
@@ -363,7 +304,6 @@ export default function SearchResults() {
                 {report.summary?.publiclyDiscovered ?? 0}
               </span>
             </div>
-
             <div className="p-3.5 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)]">
               <span className="text-[10px] font-mono uppercase tracking-wider text-gray-500 block">
                 API Surfaces
@@ -372,7 +312,6 @@ export default function SearchResults() {
                 {report.summary?.apiSignals ?? 0}
               </span>
             </div>
-
             <div className="p-3.5 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)]">
               <span className="text-[10px] font-mono uppercase tracking-wider text-gray-500 block">
                 Storage References
@@ -382,8 +321,6 @@ export default function SearchResults() {
               </span>
             </div>
           </div>
-
-          {/* Export PDF Button & Evaluation Timestamp */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-[var(--border-subtle)]">
             <div className="flex items-center gap-2 text-xs font-mono text-gray-500">
               <span>EVALUATED:</span>
@@ -391,7 +328,6 @@ export default function SearchResults() {
                 {report.scannedAt ? new Date(report.scannedAt).toLocaleString() : 'Recent'}
               </span>
             </div>
-
             <button
               onClick={handlePdfDownload}
               disabled={isPdfLoading}
@@ -401,14 +337,11 @@ export default function SearchResults() {
               <span>{isPdfLoading ? 'Generating PDF...' : 'Export PDF'}</span>
             </button>
           </div>
-
-          {/* Safe Privacy Disclaimer */}
           <p className="text-[11px] font-mono text-gray-500 leading-relaxed pt-2 border-t border-[var(--border-subtle)]">
             Privacy note: Raw URLs, search results, and specific technical evidence are intentionally omitted to provide a safe, aggregate exposure overview.
           </p>
         </div>
       )}
-
     </div>
   );
 }

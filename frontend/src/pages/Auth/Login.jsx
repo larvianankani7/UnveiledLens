@@ -1,27 +1,20 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Loader2, ArrowLeft, KeyRound } from 'lucide-react';
-
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-
 export default function Login() {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
   const navigate = useNavigate();
-
   const [step, setStep] = useState(1);
   const [otp, setOtp] = useState('');
-
   const handleLogin = async (event) => {
     event.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/auth/login`,
@@ -36,9 +29,7 @@ export default function Login() {
           })
         }
       );
-
       const data = await response.json().catch(() => null);
-
       if (!response.ok) {
         throw new Error(
           data?.message ||
@@ -46,7 +37,6 @@ export default function Login() {
           'Invalid email or password.'
         );
       }
-
       if (data?.requiresOtp) {
         setStep(2);
       } else if (data?.token) {
@@ -54,7 +44,6 @@ export default function Login() {
         sessionStorage.setItem('role', 'ROLE_USER');
         navigate('/search');
       }
-
     } catch (err) {
       setError(
         err instanceof Error
@@ -65,7 +54,6 @@ export default function Login() {
       setLoading(false);
     }
   };
-
   const handleVerifyOtp = async (event) => {
     event.preventDefault();
     if (otp.length !== 6) {
@@ -74,7 +62,6 @@ export default function Login() {
     }
     setError('');
     setLoading(true);
-
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/auth/login/verify-otp`,
@@ -89,9 +76,7 @@ export default function Login() {
           })
         }
       );
-
       const data = await response.json().catch(() => null);
-
       if (!response.ok) {
         throw new Error(
           data?.message ||
@@ -99,11 +84,9 @@ export default function Login() {
           'Invalid or expired OTP.'
         );
       }
-
       sessionStorage.setItem('token', data.token);
       sessionStorage.setItem('role', 'ROLE_USER');
       navigate('/search');
-      
     } catch (err) {
       setError(
         err instanceof Error
@@ -114,7 +97,6 @@ export default function Login() {
       setLoading(false);
     }
   };
-
   return (
     <div className="relative page-enter">
       <Link 
@@ -125,7 +107,6 @@ export default function Login() {
         <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" />
         <span>Return to Platform Home</span>
       </Link>
-
       <div className="text-center mb-6">
         <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-cyan block mb-1">
           AUTHENTICATION GATEWAY
@@ -139,7 +120,6 @@ export default function Login() {
             : `Enter the 6-digit verification code sent to ${identifier}`}
         </p>
       </div>
-
       {step === 1 && (
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
@@ -158,7 +138,6 @@ export default function Login() {
               />
             </div>
           </div>
-
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-gray-400 mb-1.5">
               Password
@@ -175,13 +154,11 @@ export default function Login() {
               />
             </div>
           </div>
-
           {error && (
             <div className="rounded-lg border border-red-900/60 bg-red-950/30 px-3.5 py-2.5 text-xs text-red-300">
               {error}
             </div>
           )}
-
           <button
             type="submit"
             disabled={loading}
@@ -198,13 +175,11 @@ export default function Login() {
           </button>
         </form>
       )}
-
       {step === 2 && (
         <form onSubmit={handleVerifyOtp} className="space-y-5 text-center">
           <div className="h-10 w-10 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mx-auto text-accent-cyan">
             <KeyRound className="h-5 w-5" />
           </div>
-
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-gray-400 mb-2">
               One-Time Passcode
@@ -222,13 +197,11 @@ export default function Login() {
               autoFocus
             />
           </div>
-
           {error && (
             <div className="rounded-lg border border-red-900/60 bg-red-950/30 px-3.5 py-2.5 text-xs text-red-300">
               {error}
             </div>
           )}
-
           <button
             type="submit"
             disabled={loading}
@@ -245,7 +218,6 @@ export default function Login() {
           </button>
         </form>
       )}
-
       <div className="mt-8 pt-5 border-t border-[var(--border-subtle)] text-center space-y-2.5 text-xs font-mono">
         <p className="text-gray-400">
           Need an account?{' '}
@@ -253,7 +225,6 @@ export default function Login() {
             Register Domain Scope
           </Link>
         </p>
-
         <p className="text-gray-500">
           Admin access?{' '}
           <Link to="/admin-verify" className="text-gray-400 hover:text-accent-cyan">

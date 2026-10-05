@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuditService {
     private final AuditRepository auditRepository;
-    
     public void log(String eventType, String details, Long userId) {
         AuditLog log = new AuditLog();
         log.setEventType(eventType);

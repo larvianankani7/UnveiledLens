@@ -1,14 +1,4 @@
 import React, { useEffect } from 'react';
-
-/**
- * Dedicated Intro Video Player Component.
- *
- * Implements:
- * - Fixed 1080p YouTube-video composition (1920 × 1080, 16:9)
- * - Full viewport occupation without scrolling
- * - Preserves aspect ratio with zero distortion, stretching, or cropping
- * - Clean letterboxing/pillarboxing when viewport deviates from 16:9
- */
 export default function IntroVideo({
   videoRef,
   onTimeUpdate,
@@ -26,7 +16,6 @@ export default function IntroVideo({
       }
     }
   }, [videoRef]);
-
   return (
     <div
       className="relative flex items-center justify-center select-none"
@@ -38,7 +27,6 @@ export default function IntroVideo({
         aspectRatio: '16 / 9'
       }}
     >
-      {/* 1080p Intro Video */}
       <video
         ref={videoRef}
         autoPlay
@@ -51,8 +39,6 @@ export default function IntroVideo({
       >
         <source src="/videos/intro.mp4" type="video/mp4" />
       </video>
-
-      {/* Children elements (such as StartButton) anchored within the 1080p frame */}
       {children}
     </div>
   );

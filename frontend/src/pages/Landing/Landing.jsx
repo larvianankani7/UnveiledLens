@@ -10,34 +10,24 @@ import {
   Cpu,
   Layers
 } from 'lucide-react';
-
 export default function Landing() {
   return (
     <div className="flex flex-col relative overflow-hidden page-enter">
-      {/* Hero Section */}
       <section className="relative pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto text-center z-10">
-        
-        {/* Intelligence System Signal Badge */}
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] mb-8">
           <span className="status-pip status-pip-cyan status-pulse" />
           <span className="text-[11px] font-mono tracking-widest uppercase text-gray-400">
             SEARCH-POWERED EXPOSURE INTELLIGENCE
           </span>
         </div>
-
-        {/* Main Title */}
         <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
           <span className="block text-white">Discover Beyond</span>
           <span className="w-fit mx-auto block text-gradient-animated">The Known.</span>
         </h1>
-
-        {/* Subtitle */}
         <p className="mt-4 max-w-2xl text-base sm:text-lg text-gray-400 mx-auto mb-10 leading-relaxed font-normal">
-          UnveiledLens identifies publicly discoverable exposure signals through search-engine intelligence. 
+          UnveiledLens identifies publicly discoverable exposure signals through search-engine intelligence.
           Discover what the public web has already revealed about your external surface without invasive scanning.
         </p>
-
-        {/* Action Controls */}
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
           <Link
             to="/register"
@@ -53,8 +43,6 @@ export default function Landing() {
             Access Intelligence Console
           </Link>
         </div>
-
-        {/* Architecture Telemetry Highlights */}
         <div className="mt-16 pt-10 border-t border-[var(--border-subtle)] grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
           <div className="p-4 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-subtle)]">
             <div className="text-[10px] font-mono uppercase tracking-widest text-accent-cyan font-bold mb-1">
@@ -67,7 +55,6 @@ export default function Landing() {
               Passively gathers publicly indexed resources without intrusive target scanning.
             </div>
           </div>
-
           <div className="p-4 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-subtle)]">
             <div className="text-[10px] font-mono uppercase tracking-widest text-accent-cyan font-bold mb-1">
               PRIVACY SAFEGUARDS
@@ -79,7 +66,6 @@ export default function Landing() {
               Cryptographically masks credentials, tokens, and sensitive strings before persistence.
             </div>
           </div>
-
           <div className="p-4 rounded-xl bg-[var(--bg-surface-soft)] border border-[var(--border-subtle)]">
             <div className="text-[10px] font-mono uppercase tracking-widest text-accent-cyan font-bold mb-1">
               ACCESS BOUNDARY
@@ -93,8 +79,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
-      {/* Methodology Section */}
       <section className="py-20 border-y border-[var(--border-primary)] bg-[var(--bg-secondary)]/60 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
@@ -108,9 +92,7 @@ export default function Landing() {
               Transforms publicly discoverable exposure signals into actionable security intelligence through four precise phases.
             </p>
           </div>
-          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {/* Card 1 */}
             <div className="glass-panel card-interactive p-6 rounded-xl flex flex-col justify-between">
               <div>
                 <div className="h-10 w-10 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mb-4 text-accent-cyan">
@@ -127,8 +109,6 @@ export default function Landing() {
                 </p>
               </div>
             </div>
-            
-            {/* Card 2 */}
             <div className="glass-panel card-interactive p-6 rounded-xl flex flex-col justify-between">
               <div>
                 <div className="h-10 w-10 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mb-4 text-accent-cyan">
@@ -145,8 +125,6 @@ export default function Landing() {
                 </p>
               </div>
             </div>
-
-            {/* Card 3 */}
             <div className="glass-panel card-interactive p-6 rounded-xl flex flex-col justify-between">
               <div>
                 <div className="h-10 w-10 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mb-4 text-accent-cyan">
@@ -163,8 +141,6 @@ export default function Landing() {
                 </p>
               </div>
             </div>
-
-            {/* Card 4 */}
             <div className="glass-panel card-interactive p-6 rounded-xl flex flex-col justify-between">
               <div>
                 <div className="h-10 w-10 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-primary)] flex items-center justify-center mb-4 text-accent-cyan">
@@ -184,8 +160,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-      
-      {/* Verified Ownership Boundary */}
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
@@ -198,7 +172,6 @@ export default function Landing() {
             <p className="text-sm text-gray-400 mb-6 leading-relaxed">
               UnveiledLens enforces an inviolable perimeter: deep intelligence findings and discovery summaries are locked until domain ownership is mathematically verified.
             </p>
-            
             <div className="space-y-3 font-mono text-xs">
               <div className="flex items-center gap-3 p-3 rounded-lg bg-[var(--bg-surface-soft)] border border-[var(--border-subtle)]">
                 <span className="status-pip status-pip-emerald" />
@@ -214,8 +187,6 @@ export default function Landing() {
               </div>
             </div>
           </div>
-
-          {/* Technical Terminal Mockup */}
           <div className="glass-panel card-glow rounded-xl p-6 border border-glass-border">
             <div className="flex items-center justify-between pb-3 mb-4 border-b border-[var(--border-primary)]">
               <div className="flex items-center space-x-2">
@@ -230,7 +201,6 @@ export default function Landing() {
                 <div className="w-2.5 h-2.5 rounded-full bg-accent-cyan/60" />
               </div>
             </div>
-
             <div className="space-y-3 font-mono text-xs">
               <div className="flex justify-between items-center text-gray-500 pb-1 border-b border-glass-border">
                 <span>TARGET ENTITY</span>
